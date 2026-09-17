@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useAuth } from '@/lib/AuthContext';
+
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
 type MenuItemProps = {
@@ -30,6 +32,10 @@ type SwitchItemProps = {
 };
 
 const ProfileScreen = () => {
+  const { user : userData, logout } = useAuth();
+const username = userData?.user_metadata?.first_name + userData?.user_metadata?.last_name ;
+console.log(userData)
+
   // Hardcoded values for UI only
   const user = {
     name: "Godfrey Ajayi",
@@ -59,13 +65,13 @@ const ProfileScreen = () => {
         {/* User Info Section */}
         <View style={styles.userInfoSection}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>G</Text>
+            <Text style={styles.avatarText}>{userData?.user_metadata?.first_name?.charAt(0).toUpperCase() || "?"}</Text>
           </View>
 
           <View style={styles.userDetails}>
-            <Text style={styles.userName}>{user.name}</Text>
+            <Text style={styles.userName}>{username}</Text>
 
-            <Text style={styles.userEmail}>{user.email}</Text>
+            <Text style={styles.userEmail}>{userData?.user_metadata?.email}</Text>
 
             <View style={styles.badgeRow}>
               <View style={[styles.badge, styles.badgeGold]}>
@@ -217,7 +223,7 @@ const ProfileScreen = () => {
         </View>
 
         {/* Log Out */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} className="mb-20" onPress={logout}>
           <Ionicons
             name="log-out-outline"
             size={20}

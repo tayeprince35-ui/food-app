@@ -1,13 +1,3 @@
-import { Slot, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import Toast, {
-  BaseToast,
-  ErrorToast,
-  ToastConfig,
-} from 'react-native-toast-message';
-import LoadingScreen from './../components/LoadingScreen'
-import { useFonts } from 'expo-font';
 import {
   PlusJakartaSans_400Regular,
   PlusJakartaSans_500Medium,
@@ -15,6 +5,15 @@ import {
   PlusJakartaSans_700Bold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import { useEffect } from 'react';
+import Toast, {
+  BaseToast,
+  ErrorToast,
+  ToastConfig,
+} from 'react-native-toast-message';
+import LoadingScreen from './../components/LoadingScreen';
 
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import './../global.css';

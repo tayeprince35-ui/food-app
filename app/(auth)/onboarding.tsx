@@ -1,19 +1,18 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { Image } from 'expo-image';
-import Svg, { Path } from 'react-native-svg';
-import { useFonts } from 'expo-font';
 import {
   PlusJakartaSans_400Regular,
   PlusJakartaSans_500Medium,
   PlusJakartaSans_600SemiBold,
   PlusJakartaSans_700Bold,
 } from '@expo-google-fonts/plus-jakarta-sans';
+import { useFonts } from 'expo-font';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
-const Logo = require('../assets/icons/logo.png');
-const BikeImage = require('../assets/icons/bike.png');
+const Logo = require('./../../assets/icons/logo.png');
+const BikeImage = require('./../../assets/icons/bike.png');
 
 // Reusable Sky/Cloud Component
 const SkyShape = () => (

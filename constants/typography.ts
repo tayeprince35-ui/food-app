@@ -2,22 +2,18 @@ import { TextStyle } from "react-native";
 
 export const typography: Record<string, TextStyle> = {
   regular: {
-    fontFamily: "PlusJakartaSans-Regular",
+    fontFamily: "PlusJakarta-Regular",
   },
 
   medium: {
-    fontFamily: "PlusJakartaSans-Medium",
+    fontFamily: "PlusJakarta-Medium",
   },
 
-  semibold: {
-    fontFamily: "PlusJakartaSans-SemiBold",
+  semiBold: {
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   bold: {
-    fontFamily: "PlusJakartaSans-Bold",
-  },
-
-  extrabold: {
-    fontFamily: "PlusJakartaSans-ExtraBold",
+    fontFamily: "PlusJakarta-Bold",
   },
 };

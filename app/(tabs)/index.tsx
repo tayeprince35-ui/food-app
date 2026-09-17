@@ -2,7 +2,7 @@ import { typography } from "@/constants/typography";
 import POPULAR_ITEMS from "@/data/food";
 import { useAuth } from "@/lib/AuthContext";
 import { useCartStore } from "@/store/cartStore";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -16,22 +16,28 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import grocery from "../../assets/icons/basket.png";
+import chicken from "../../assets/icons/chicken.png";
+import pizza from "../../assets/icons/pizza.png";
+import plate from "../../assets/icons/plate.png";
+import rice from "../../assets/icons/rice.png";
+import shawarma from "../../assets/icons/shawarma.png";
 
-const Container = require("./../../assets/icons/bowl.png");
+const Container = require("./../../assets/icons/container.png");
 
 type Category = {
   id: string;
   name: string;
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+  icon: any
 };
 
 const CATEGORIES: Category[] = [
-  { id: "all", name: "All", icon: "silverware-fork-knife" },
-  { id: "Rice", name: "Rice", icon: "rice" },
-  { id: "Chicken", name: "Chicken", icon: "food-drumstick" },
-  { id: "Pizza", name: "Pizza", icon: "pizza" },
-  { id: "Shawarma", name: "Shawarma", icon: "taco" },
-  { id: "Grocery", name: "Grocery", icon: "cart-outline" },
+  { id: "all", name: "All", icon: plate },
+  { id: "Rice", name: "Rice", icon: rice},
+  { id: "Chicken", name: "Chicken", icon: chicken },
+  { id: "Pizza", name: "Pizza", icon: pizza },
+  { id: "Shawarma", name: "Shawarma", icon: shawarma },
+  { id: "Grocery", name: "Grocery", icon: grocery },
 ];
 
 const FLASH_DEALS = [
@@ -128,7 +134,7 @@ export default function Home() {
                   style={typography.bold}
                   className="w-9 h-9 rounded-full bg-[#2C2C2E] text-base text-[#34C759] flex items-center justify-center"
                 >
-                  {user?.user_metadata?.firstName?.charAt(0).toUpperCase() ||
+                  {user?.user_metadata?.first_name?.charAt(0).toUpperCase() ||
                     "?"}
                 </Text>
               </View>
@@ -229,6 +235,7 @@ export default function Home() {
                 </Text>
 
                 <Pressable
+                onPress={()=>router.push('/cart')}
                   className="mt-3 bg-white py-2 px-4 rounded-lg self-start flex-row items-center gap-2"
                 >
                   <Text
@@ -306,11 +313,8 @@ export default function Home() {
                             : "bg-[#1C1C1E]"
                         }`}
                       >
-                        <MaterialCommunityIcons
-                          name={category.icon}
-                          size={24}
-                          color={isActive ? "#FFF" : "#777B84"}
-                        />
+                        
+                        <Image source={category.icon} style={{ width: 68, height: 68 }} contentFit="contain" cachePolicy="memory-disk" transition={100}  />
                       </View>
 
                       <Text
@@ -404,7 +408,7 @@ export default function Home() {
                     }}
                     contentFit="cover"
                     cachePolicy="memory-disk"
-                    transition={200}
+                    transition={100}
                   />
 
                   <Text
@@ -455,7 +459,7 @@ export default function Home() {
                   }}
                   contentFit="cover"
                   cachePolicy="memory-disk"
-                  transition={200}
+                  transition={100}
                 />
 
                 {/* Distance */}
