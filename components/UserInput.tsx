@@ -1,8 +1,8 @@
 import { LucideEye, LucideEyeOff } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 
-type UserInputProps = {
+type UserInputProps = TextInputProps & {
   placeholder: string;
   secureTextEntry?: boolean;
   value: string;
@@ -16,12 +16,13 @@ export default function UserInput({
   value,
   onChangeText,
   onBlur,
+  ...props
 }: UserInputProps) {
   const [focused, setFocused] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   return (
-    <View style={styles.container} className="relative">
+    <View style={styles.container}>
       <TextInput
         style={[
           styles.input,
@@ -29,25 +30,28 @@ export default function UserInput({
           secureTextEntry && { paddingRight: 48 },
         ]}
         placeholder={placeholder}
-        placeholderTextColor="#888888"
-        secureTextEntry={secureTextEntry && !isPasswordVisible} // Toggle visibility
+        placeholderTextColor="#6B7280"
+        secureTextEntry={secureTextEntry && !isPasswordVisible}
         value={value}
         onChangeText={onChangeText}
         autoCapitalize="none"
+        cursorColor="#00A859"
         onFocus={() => setFocused(true)}
         onBlur={() => {
           setFocused(false);
           onBlur?.();
         }}
+        {...props}
       />
       {secureTextEntry && (
         <Pressable
           onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-          className="absolute top-3 right-3">
+          style={styles.eyeIconButton}
+        >
           {isPasswordVisible ? (
-            <LucideEyeOff color={'#F28C28'} size={24} />
+            <LucideEyeOff color="#9CA3AF" size={20} />
           ) : (
-            <LucideEye color={'#F28C28'} size={24} />
+            <LucideEye color="#9CA3AF" size={20} />
           )}
         </Pressable>
       )}
@@ -58,20 +62,27 @@ export default function UserInput({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginVertical: 8,
+    position: 'relative',
   },
   input: {
     width: '100%',
-    height: 48,
+    height: 52,
+    backgroundColor: '#1C1F26',
     borderWidth: 1,
-    borderColor: '#CCCCCC',
+    borderColor: '#2D323E',
+    borderRadius: 26,
+    paddingHorizontal: 20,
+    fontSize: 14,
+    color: '#FFFFFF',
     outlineStyle: 'none' as any,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
   },
   focusedInput: {
-    borderColor: '#F97316',
-    borderWidth: 2,
+    borderColor: '#00A859',
+    borderWidth: 1.5,
+  },
+  eyeIconButton: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
   },
 });

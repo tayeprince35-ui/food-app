@@ -1,197 +1,255 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { Image } from 'expo-image';
+import Svg, { Path } from 'react-native-svg';
+import { useFonts } from 'expo-font';
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
 
-import biker from './../../assets/onboard/bike.png';
-import food from './../../assets/onboard/food.png';
-import payment from './../../assets/onboard/payments.png';
+const Logo = require('../assets/icons/logo.png');
+const BikeImage = require('../assets/icons/bike.png');
 
-const slides = [
-  {
-    IMAGE: food,
-    title: 'Discover Great Food',
-    description:
-      'Browse hundreds of restaurants and discover delicious meals near you.',
-    number: '01',
-    accent: '#F97316',
-    softAccent: '#FFEDD5',
-  },
-  {
-    IMAGE: biker,
-    title: 'Fast Delivery',
-    description:
-      'Track your order in real time and get your food delivered quickly.',
-    number: '02',
-    accent: '#EA580C',
-    softAccent: '#FFEDD5',
-  },
-  {
-    IMAGE: payment,
-    title: 'Easy & Secure Payment',
-    description:
-      'Pay safely using your preferred payment method with confidence.',
-    number: '03',
-    accent: '#C2410C',
-    softAccent: '#FFEDD5',
-  },
-];
+// Reusable Sky/Cloud Component
+const SkyShape = () => (
+  <Svg
+    width="61"
+    height="13"
+    viewBox="0 0 61 13"
+    fill="none"
+  >
+    <Path
+      d="M60.9683 11.6771C61.4349 8.96393 56.6542 6.73457 53.0667 6.50183C51.3533 6.39159 49.5711 6.59982 47.9495 6.1466C44.4385 5.16666 43.0311 1.52863 39.6042 0.371072C37.0418 -0.486376 34.0892 0.2792 31.6032 1.27752C29.1173 2.27583 26.6543 3.54363 23.8776 3.6845C21.4605 3.80699 18.8445 3.07203 16.7257 4.0336C15.15 4.73793 14.3238 6.1956 12.9011 7.04692C11.4784 7.89825 9.60433 8.08811 7.83737 8.14323C6.07042 8.19835 4.25758 8.2351 2.65126 8.82306C1.04494 9.41103 -0.278363 10.7707 0.0505499 12.1549L60.9683 11.6771Z"
+      fill="#FFFFFF"
+    />
+  </Svg>
+);
 
-export default function Onboarding() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const router = useRouter();
+export default function WelcomeScreen() {
+  const [fontsLoaded] = useFonts({
+    JakartaRegular: PlusJakartaSans_400Regular,
+    JakartaMedium: PlusJakartaSans_500Medium,
+    JakartaSemiBold: PlusJakartaSans_600SemiBold,
+    JakartaBold: PlusJakartaSans_700Bold,
+  });
 
-  const slide = slides[currentSlide];
-  const isLastSlide = currentSlide === slides.length - 1;
-
-  const handleNext = () => {
-    if (isLastSlide) {
-      router.push('/(auth)/login');
-    } else {
-      setCurrentSlide((prev) => prev + 1);
-    }
-  };
-
-  const handleSkip = () => {
-    router.push('/(auth)/login');
-  };
+  if (!fontsLoaded) return null;
 
   return (
-    <View className="flex-1 bg-[#FFF9F4]">
-      {/* Top bar */}
-      <View className="flex-row items-center justify-between px-6 pt-16">
-        <View className="flex-row items-center">
-          <View className="mr-2 h-3 w-3 rounded-full bg-orange-500" />
+    <LinearGradient
+      colors={['#00A859', '#006644']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
+      {/* Top Logo Section */}
+      <View style={styles.topSection}>
+        <View style={styles.logoRow}>
+          <Image
+            source={Logo}
+            style={styles.logo}
+            contentFit="contain"
+            cachePolicy="memory-disk"
+          />
 
-          <Text
-            style={{ fontFamily: 'Poppins_600SemiBold' }}
-            className="text-xl text-[#21150F]">
-            Foodie
-          </Text>
+          <Text style={styles.logoText}>HeyBite</Text>
         </View>
 
-        <Pressable
-          onPress={handleSkip}
-          className="rounded-full bg-white px-5 py-2.5 shadow-sm">
-          <Text
-            style={{ fontFamily: 'Poppins_500Medium' }}
-            className="text-sm text-gray-500">
-            Skip
-          </Text>
-        </Pressable>
+        <Text style={styles.tagline}>
+          Crave it? Get it fast...
+        </Text>
       </View>
 
-      {/* Illustration section */}
-      <View className="relative flex-1 items-center justify-center px-6">
-        {/* Background shapes */}
-        <View
-          className="absolute h-[330px] w-[330px] rounded-[100px]"
-          style={{
-            backgroundColor: slide.softAccent,
-            transform: [{ rotate: '-8deg' }],
-          }}
-        />
-
-        <View
-          className="absolute -right-5 top-20 h-20 w-20 rounded-full"
-          style={{ backgroundColor: slide.accent }}
-        />
-
-        <View className="absolute bottom-20 left-8 h-5 w-5 rounded-full bg-orange-300" />
-        <View className="absolute left-16 top-20 h-3 w-3 rounded-full bg-orange-400" />
-
-        {/* Fixed Animated Wrapper */}
-        <Animated.View
-          key={currentSlide}
-          entering={FadeIn.duration(500)}
-          exiting={FadeOut.duration(300)}
-          className="z-10 h-72 w-screen items-center justify-center">
-          <View
-            className="h-full w-full overflow-hidden rounded-3xl bg-white"
-            style={{
-              shadowColor: '#9A3412',
-              shadowOffset: { width: 0, height: 15 },
-              shadowOpacity: 0.12,
-              shadowRadius: 25,
-              elevation: 8,
-            }}>
-            <Image
-              source={slide.IMAGE}
-              className="h-full w-full"
-              resizeMode="contain"
-            />
-          </View>
-        </Animated.View>
-      </View>
-
-      {/* Bottom content card */}
-      <View className="rounded-t-[42px] bg-white px-7 pb-9 pt-8">
-        <View className="mb-5 flex-row items-center justify-between">
-          <Text
-            style={{
-              fontFamily: 'Poppins_600SemiBold',
-              color: slide.accent,
-            }}
-            className="text-sm tracking-[3px]">
-            {slide.number}
-          </Text>
-
-          <View className="flex-row items-center">
-            {slides.map((_, index) => (
-              <Pressable
-                key={index}
-                onPress={() => setCurrentSlide(index)}
-                className="mr-2">
-                <View
-                  className="h-2 rounded-full"
-                  style={{
-                    width: index === currentSlide ? 30 : 8,
-                    backgroundColor:
-                      index === currentSlide ? slide.accent : '#E5E7EB',
-                  }}
-                />
-              </Pressable>
-            ))}
-          </View>
+      {/* Center Illustration */}
+      <View style={styles.imageSection}>
+        {/* Right Cloud */}
+        <View style={styles.cloudRight}>
+          <SkyShape />
         </View>
 
-        <Animated.View
-          key={`content-${currentSlide}`}
-          entering={FadeIn.duration(400)}
-          exiting={FadeOut.duration(250)}>
-          <Text
-            style={{ fontFamily: 'Poppins_600SemiBold' }}
-            className="max-w-[320px] text-[32px] leading-[40px] text-[#21150F]">
-            {slide.title}
+        {/* Left Cloud */}
+        <View style={styles.cloudLeft}>
+          <SkyShape />
+        </View>
+
+        <Image
+          source={BikeImage}
+          style={styles.bikeImage}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          transition={200}
+        />
+      </View>
+
+      {/* Bottom Content */}
+      <View style={styles.bottomSection}>
+        <Text style={styles.heading}>
+          Get started Begin Your Journey with Ease!
+        </Text>
+
+        <Text style={styles.subtext}>
+          Discover great food with just a few steps! Customize, explore, and
+          enjoy your perfect meals
+        </Text>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/signup')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>
+            Get started
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.loginRow}>
+          <Text style={styles.loginText}>
+            Already have an account?{' '}
           </Text>
 
-          <Text
-            style={{ fontFamily: 'Poppins_400Regular' }}
-            className="mt-3 text-[15px] leading-6 text-gray-500">
-            {slide.description}
-          </Text>
-        </Animated.View>
-
-        {/* Bottom action */}
-        <Pressable
-          onPress={handleNext}
-          className="mt-8 flex-row items-center justify-between rounded-[22px] px-6 py-4"
-          style={{ backgroundColor: slide.accent }}>
-          <Text
-            style={{ fontFamily: 'Poppins_600SemiBold' }}
-            className="text-[16px] text-white">
-            {isLastSlide ? 'Get Started' : 'Continue'}
-          </Text>
-
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
-            <Text
-              style={{ color: slide.accent }}
-              className="text-2xl font-bold">
-              →
+          <TouchableOpacity
+            onPress={() => router.push('/login')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.loginLink}>
+              Log in
             </Text>
-          </View>
-        </Pressable>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 30,
+  },
+
+  topSection: {
+    flex: 0.2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 5,
+    paddingBottom: 30,
+  },
+
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+
+  logo: {
+    width: 40,
+    height: 40,
+  },
+
+  logoText: {
+    fontSize: 20,
+    fontFamily: 'JakartaBold',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+
+  tagline: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    opacity: 0.8,
+    fontFamily: 'JakartaMedium',
+    marginTop: 2,
+  },
+
+  imageSection: {
+    flex: 0.35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+
+  cloudRight: {
+    position: 'absolute',
+    top: -80,
+    right: 20,
+    zIndex: 2,
+  },
+
+  cloudLeft: {
+    position: 'absolute',
+    top: -35,
+    left: 130,
+    zIndex: 2,
+  },
+
+  bikeImage: {
+    width: 324,
+    height: 279,
+  },
+
+  bottomSection: {
+    flex: 0.45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 40,
+  },
+
+  heading: {
+    fontSize: 24,
+    fontFamily: 'JakartaBold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+
+  subtext: {
+    fontSize: 12,
+    fontFamily: 'JakartaRegular',
+    color: '#FFFFFF',
+    opacity: 0.85,
+    textAlign: 'center',
+    marginBottom: 30,
+    paddingHorizontal: 5,
+    letterSpacing: 0.5,
+    fontWeight: '600',
+  },
+
+  button: {
+    backgroundColor: '#00A859',
+    paddingVertical: 16,
+    borderRadius: 30,
+    width: '100%',
+    marginBottom: 20,
+  },
+
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    textAlign: 'center',
+    fontFamily: 'JakartaBold',
+  },
+
+  loginRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  loginText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    opacity: 0.9,
+    fontFamily: 'JakartaMedium',
+  },
+
+  loginLink: {
+    color: '#00A859',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+    fontFamily: 'JakartaBold',
+  },
+});
