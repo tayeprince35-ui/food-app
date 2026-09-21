@@ -24,7 +24,7 @@ import { z } from "zod";
 import loginSchema from "../../lib/schemas/loginSchema";
 import { supabase } from "../../lib/supabase";
 
-const Logo = require("../../assets/icons/logo.png");
+const Logo = require("../../assets/icons/logo2.png");
 
 type LoginFormData = z.infer<typeof loginSchema>;
 

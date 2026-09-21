@@ -1,4 +1,4 @@
-type Foods = {
+export type Foods = {
   id: number;
   name: string;
   rating: number;
@@ -18,7 +18,7 @@ const POPULAR_ITEMS: Foods[] = [
     deliveryTime: '20-30 min',
     price: 4500,
     image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=60',
-    category: 'Jollof',
+    category: 'Grocery',
   },
   {
     id: 2,

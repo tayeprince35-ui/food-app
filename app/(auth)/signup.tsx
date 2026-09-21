@@ -16,12 +16,20 @@ import {
   TextInput,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { z } from "zod";
 
+import CountryPicker, {
+  Country,
+} from "@/components/CountryPicker";
+
 import signupSchema from "../../lib/schemas/signupSchema";
 import { supabase } from "../../lib/supabase";
+
+const Logo = require("../../assets/icons/logo2.png");
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
@@ -44,29 +52,33 @@ function Field({
   error,
   keyboardType = "default",
   autoCapitalize = "none",
+  focused,
+  setFocus,
 }: {
   label?: string;
   placeholder: string;
   value?: string;
   onChangeText?: (text: string) => void;
   onBlur?: () => void;
+setFocus: (focused: boolean) => void;
   secureTextEntry?: boolean;
   rightIcon?: React.ReactNode;
+  focused?: boolean;
   onRightIconPress?: () => void;
   style?: object;
   error?: string;
   keyboardType?: "default" | "email-address" | "phone-pad";
   autoCapitalize?: "none" | "words" | "sentences" | "characters";
-}) {
+})  {
   return (
     <View style={[styles.fieldWrap, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
 
-      <View style={[styles.inputShell, error && styles.inputShellError]}>
+      <View style={[styles.inputShell, error && styles.inputShellError,  focused && styles.inputFocused]}>
         <TextInput
           value={value}
           onChangeText={onChangeText}
-          onBlur={onBlur}
+       
           placeholder={placeholder}
           placeholderTextColor="#777777"
           secureTextEntry={secureTextEntry}
@@ -74,7 +86,12 @@ function Field({
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
           style={styles.input}
-        />
+        onFocus={() => setFocus?.(true)}
+onBlur={() => {
+  setFocus?.(false);
+  onBlur?.();
+}}
+           />
 
         {rightIcon ? (
           <Pressable
@@ -95,6 +112,13 @@ function Field({
 export default function SignUpScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<Country>({
+    name: "Nigeria",
+    code: "NG",
+    dialCode: "+234",
+    flag: "🇳🇬",
+  });
 
   const {
     control,
@@ -102,11 +126,12 @@ export default function SignUpScreen() {
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
+
     defaultValues: {
       firstName: "",
       lastName: "",
       email: "",
-      country: "Nigeria", // default so schema passes without a real picker
+      country: "Nigeria",
       phoneNumber: "",
       password: "",
       referralCode: "",
@@ -115,19 +140,27 @@ export default function SignUpScreen() {
 
   const handleContinue = async (formData: SignupFormData) => {
     if (loading) return;
+
     setLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signUp({
         email: formData.email.trim().toLowerCase(),
+
         password: formData.password,
+
         options: {
           data: {
             first_name: formData.firstName.trim(),
+
             last_name: formData.lastName.trim(),
+
             country: formData.country,
+
             phone_number: formData.phoneNumber.trim(),
-            referral_code: formData.referralCode?.trim() || null,
+
+            referral_code:
+              formData.referralCode?.trim() || null,
           },
         },
       });
@@ -138,17 +171,20 @@ export default function SignUpScreen() {
           text1: "Sign up failed",
           text2: error.message,
         });
+
         return;
       }
 
-      // If email confirmation is ON in Supabase, session will be null here
       if (!data.session) {
         Toast.show({
           type: "success",
           text1: "Check your inbox",
-          text2: "We sent you a confirmation link to verify your email.",
+          text2:
+            "We sent you a confirmation link to verify your email.",
         });
+
         router.replace("/(auth)/login");
+
         return;
       }
 
@@ -161,7 +197,9 @@ export default function SignUpScreen() {
       router.replace("/(tabs)");
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : "Please try again later.";
+        error instanceof Error
+          ? error.message
+          : "Please try again later.";
 
       Toast.show({
         type: "error",
@@ -174,45 +212,64 @@ export default function SignUpScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <StatusBar barStyle="light-content" backgroundColor={SCREEN_BG} />
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top", "bottom"]}
+    >
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={SCREEN_BG}
+      />
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={
+          Platform.OS === "ios" ? "padding" : undefined
+        }
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* TOP BAR */}
+
           <View style={styles.topBar}>
             <Pressable
               hitSlop={12}
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Feather name="chevron-left" size={27} color="#FFFFFF" />
+              <Feather
+                name="chevron-left"
+                size={27}
+                color="#FFFFFF"
+              />
             </Pressable>
 
             <Pressable
               style={styles.guestButton}
               onPress={() => router.replace("/(tabs)")}
             >
-              <Text style={styles.guestText}>Sign in as guest</Text>
+              <Text style={styles.guestText}>
+                Sign in as guest
+              </Text>
             </Pressable>
           </View>
 
-          <View style={styles.headingArea}>
-            <View style={styles.logoMark}>
-              <View style={styles.logoDotOne} />
-              <View style={styles.logoDotTwo} />
-              <View style={styles.logoDotThree} />
-              <View style={styles.logoDotFour} />
-              <View style={styles.logoDotFive} />
-            </View>
+          {/* HEADING */}
 
-            <Text style={styles.title}>Create an account</Text>
+          <View style={styles.headingArea}>
+            <Image
+              source={Logo}
+              style={styles.logo}
+              contentFit="contain"
+              transition={150}
+            />
+
+            <Text style={styles.title}>
+              Create an account
+            </Text>
 
             <Text style={styles.subtitle}>
               Sign up in minutes. Enter your details below to{"\n"}
@@ -221,110 +278,147 @@ export default function SignUpScreen() {
           </View>
 
           <View style={styles.form}>
-            {/* First / Last name */}
+            {/* FIRST / LAST NAME */}
+
             <View style={styles.nameRow}>
               <Controller
                 control={control}
                 name="firstName"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Field
-                    label="First name"
-                    placeholder="e.g Ajayi"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize="words"
-                    error={errors.firstName?.message}
-                    style={styles.halfField}
-                  />
+                render={({
+                  field: {
+                    onChange,
+                    onBlur,
+                    value,
+                  },
+                }) => (
+             <Field
+  label="First name"
+  placeholder="e.g Ajayi"
+  value={value}
+  onChangeText={onChange}
+  onBlur={onBlur}
+  autoCapitalize="words"
+  error={errors.firstName?.message}
+  style={styles.halfField}
+  focused={focusedInput === "firstName"}
+  setFocus={(focused) =>
+    setFocusedInput(focused ? "firstName" : null)
+  }
+/>
                 )}
               />
 
               <Controller
                 control={control}
                 name="lastName"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Field
-                    label="Last name"
-                    placeholder="e.g Ajayi"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    autoCapitalize="words"
-                    error={errors.lastName?.message}
-                    style={styles.halfField}
-                  />
+                render={({
+                  field: {
+                    onChange,
+                    onBlur,
+                    value,
+                  },
+                }) => (
+                 <Field
+  label="Last name"
+  placeholder="e.g Ajayi"
+  value={value}
+  onChangeText={onChange}
+  onBlur={onBlur}
+  autoCapitalize="words"
+  error={errors.lastName?.message}
+  style={styles.halfField}
+  focused={focusedInput === "lastName"}
+  setFocus={(focused) =>
+    setFocusedInput(focused ? "lastName" : null)
+  }
+/>
                 )}
               />
             </View>
 
-            {/* Email */}
+            {/* EMAIL */}
+
             <Controller
               control={control}
               name="email"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Field
-                  label="Email address"
-                  placeholder="godfreyajayi25@gmail.com"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="email-address"
-                  error={errors.email?.message}
-                />
+              render={({
+                field: {
+                  onChange,
+                  onBlur,
+                  value,
+                },
+              }) => (
+              <Field
+  label="Email address"
+  placeholder="godfreyajayi25@gmail.com"
+  value={value}
+  onChangeText={onChange}
+  onBlur={onBlur}
+  keyboardType="email-address"
+  error={errors.email?.message}
+  focused={focusedInput === "email"}
+  setFocus={(focused) =>
+    setFocusedInput(focused ? "email" : null)
+  }
+/>
               )}
             />
 
-            {/* Country + Phone */}
+            {/* COUNTRY + PHONE */}
+
             <View style={styles.phoneLabels}>
               <Text style={styles.label}>Country</Text>
-              <Text style={styles.label}>Phone number</Text>
+
+              <Text style={styles.label}>
+                Phone number
+              </Text>
             </View>
 
             <View style={styles.phoneRow}>
-              <Controller
-                control={control}
-                name="country"
-                render={({ field: { value } }) => (
-                  <Pressable
-                    style={[
-                      styles.countryPicker,
-                      errors.country && styles.inputShellError,
-                    ]}
-                    onPress={() =>
-                      Toast.show({
-                        type: "info",
-                        text1: "Country picker",
-                        text2: "A full picker will be added soon.",
-                      })
-                    }
-                  >
-                    <Text style={styles.flag}>
-                      {value === "Nigeria" ? "🇳🇬" : "🌍"}
-                    </Text>
-                    <Feather name="chevron-down" size={16} color="#8A8A8A" />
-                  </Pressable>
-                )}
-              />
+              {/* COUNTRY PICKER */}
+
+              <View style={styles.countryPickerWrapper}>
+                <CountryPicker
+                  value={selectedCountry}
+                  onSelect={(country) => {
+                    setSelectedCountry(country);
+                  }}
+                />
+              </View>
+
+              {/* PHONE */}
 
               <Controller
                 control={control}
                 name="phoneNumber"
-                render={({ field: { onChange, onBlur, value } }) => (
+                render={({
+                  field: {
+                    onChange,
+                    onBlur,
+                    value,
+                  },
+                }) => (
                   <View
                     style={[
                       styles.phoneInputShell,
-                      errors.phoneNumber && styles.inputShellError,
+                      errors.phoneNumber &&
+                        styles.inputShellError,
                     ]}
                   >
+                    <Text
+                      style={styles.dialCode}
+                    >
+                      {selectedCountry.dialCode}
+                    </Text>
+
                     <TextInput
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
-                      placeholder="+234 08000000000"
+                      placeholder="08000000000"
                       placeholderTextColor="#777777"
                       keyboardType="phone-pad"
-                      style={styles.input}
+                      style={styles.phoneInput}
                     />
                   </View>
                 )}
@@ -332,57 +426,97 @@ export default function SignUpScreen() {
             </View>
 
             {errors.country?.message ? (
-              <Text style={[styles.errorText, { marginTop: -6 }]}>
+              <Text
+                style={[
+                  styles.errorText,
+                  {
+                    marginTop: -6,
+                  },
+                ]}
+              >
                 {errors.country.message}
               </Text>
             ) : null}
 
             {errors.phoneNumber?.message ? (
-              <Text style={[styles.errorText, { marginTop: -6 }]}>
+              <Text
+                style={[
+                  styles.errorText,
+                  {
+                    marginTop: -6,
+                  },
+                ]}
+              >
                 {errors.phoneNumber.message}
               </Text>
             ) : null}
 
-            {/* Password */}
+            {/* PASSWORD */}
+
             <Controller
               control={control}
               name="password"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Field
-                  label="Password"
-                  placeholder="••••••••••••••••"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  secureTextEntry={!showPassword}
-                  error={errors.password?.message}
-                  rightIcon={
-                    <Feather
-                      name={showPassword ? "eye" : "eye-off"}
-                      size={18}
-                      color="#8B8B8B"
-                    />
-                  }
-                  onRightIconPress={() => setShowPassword((v) => !v)}
-                />
+              render={({
+                field: {
+                  onChange,
+                  onBlur,
+                  value,
+                },
+              }) => (
+            <Field
+  label="Password"
+  placeholder="••••••••••••••••"
+  value={value}
+  onChangeText={onChange}
+  onBlur={onBlur}
+  secureTextEntry={!showPassword}
+  error={errors.password?.message}
+  focused={focusedInput === "password"}
+  setFocus={(focused) =>
+    setFocusedInput(focused ? "password" : null)
+  }
+  rightIcon={
+    <Feather
+      name={showPassword ? "eye" : "eye-off"}
+      size={18}
+      color="#8B8B8B"
+    />
+  }
+  onRightIconPress={() =>
+    setShowPassword((value) => !value)
+  }
+/>
               )}
             />
 
-            {/* Referral code */}
+            {/* REFERRAL CODE */}
+
             <Controller
               control={control}
               name="referralCode"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Field
-                  label="Referral code (optional)"
-                  placeholder="Enter a referral code"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  error={errors.referralCode?.message}
-                />
+              render={({
+                field: {
+                  onChange,
+                  onBlur,
+                  value,
+                },
+              }) => (
+               <Field
+  label="Referral code (optional)"
+  placeholder="Enter a referral code"
+  value={value}
+  onChangeText={onChange}
+  onBlur={onBlur}
+  error={errors.referralCode?.message}
+  focused={focusedInput === "referralCode"}
+  setFocus={(focused) =>
+    setFocusedInput(focused ? "referralCode" : null)
+  }
+/>
               )}
             />
+
+            {/* CONTINUE */}
 
             <Pressable
               onPress={handleSubmit(handleContinue)}
@@ -390,27 +524,50 @@ export default function SignUpScreen() {
               style={styles.continueWrap}
             >
               <LinearGradient
-                colors={["#2A9051", "#1C733C"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+                colors={[
+                  "#2A9051",
+                  "#1C733C",
+                ]}
+                start={{
+                  x: 0,
+                  y: 0,
+                }}
+                end={{
+                  x: 1,
+                  y: 0,
+                }}
                 style={[
                   styles.continueButton,
-                  loading && styles.continueButtonDisabled,
+                  loading &&
+                    styles.continueButtonDisabled,
                 ]}
               >
                 {loading ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
+                  <ActivityIndicator
+                    color="#FFFFFF"
+                    size="small"
+                  />
                 ) : (
-                  <Text style={styles.continueText}>Continue</Text>
+                  <Text style={styles.continueText}>
+                    Continue
+                  </Text>
                 )}
               </LinearGradient>
             </Pressable>
 
+            {/* DIVIDER */}
+
             <View style={styles.dividerRow}>
               <View style={styles.divider} />
-              <Text style={styles.orText}>Or Sign up with</Text>
+
+              <Text style={styles.orText}>
+                Or Sign up with
+              </Text>
+
               <View style={styles.divider} />
             </View>
+
+            {/* GOOGLE */}
 
             <Pressable
               disabled={loading}
@@ -419,13 +576,23 @@ export default function SignUpScreen() {
                 Toast.show({
                   type: "info",
                   text1: "Google sign up",
-                  text2: "Social login will be available soon.",
+                  text2:
+                    "Social login will be available soon.",
                 })
               }
             >
-              <FontAwesome6 name="google" size={17} color="#4285F4" />
-              <Text style={styles.socialText}>Google</Text>
+              <FontAwesome6
+                name="google"
+                size={17}
+                color="#4285F4"
+              />
+
+              <Text style={styles.socialText}>
+                Google
+              </Text>
             </Pressable>
+
+            {/* APPLE */}
 
             <Pressable
               disabled={loading}
@@ -434,19 +601,34 @@ export default function SignUpScreen() {
                 Toast.show({
                   type: "info",
                   text1: "Apple sign up",
-                  text2: "Social login will be available soon.",
+                  text2:
+                    "Social login will be available soon.",
                 })
               }
             >
-              <Ionicons name="logo-apple" size={20} color="#FFFFFF" />
-              <Text style={styles.socialText}>Apple</Text>
+              <Ionicons
+                name="logo-apple"
+                size={20}
+                color="#FFFFFF"
+              />
+
+              <Text style={styles.socialText}>
+                Apple
+              </Text>
             </Pressable>
           </View>
 
+          {/* TERMS */}
+
           <Text style={styles.terms}>
             By signing up, You agree to HeyBite’s{" "}
-            <Text style={styles.link}>Terms and Conditions</Text> including{" "}
-            <Text style={styles.link}>Privacy policy</Text>
+            <Text style={styles.link}>
+              Terms and Conditions
+            </Text>{" "}
+            including{" "}
+            <Text style={styles.link}>
+              Privacy policy
+            </Text>
           </Text>
 
           <View style={styles.homeIndicator} />
@@ -460,7 +642,9 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-
+  inputFocused: {
+    borderColor: "#00BC4F",
+  },
   safeArea: {
     flex: 1,
     backgroundColor: SCREEN_BG,
@@ -506,63 +690,10 @@ const styles = StyleSheet.create({
     paddingTop: 21,
   },
 
-  logoMark: {
-    width: 30,
-    height: 29,
-    backgroundColor: "#FAFAFA",
-    borderRadius: 14,
-    transform: [{ rotate: "-18deg" }],
-    marginBottom: 10,
-  },
-
-  logoDotOne: {
-    position: "absolute",
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: CARD_BG,
-    top: 5,
-    left: 9,
-  },
-
-  logoDotTwo: {
-    position: "absolute",
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: CARD_BG,
-    top: 12,
-    right: 5,
-  },
-
-  logoDotThree: {
-    position: "absolute",
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: CARD_BG,
-    bottom: 5,
-    left: 12,
-  },
-
-  logoDotFour: {
-    position: "absolute",
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: CARD_BG,
-    top: 4,
-    right: 7,
-  },
-
-  logoDotFive: {
-    position: "absolute",
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: CARD_BG,
-    bottom: 7,
-    right: 6,
+  logo: {
+    width: 34,
+    height: 34,
+    marginBottom: 12,
   },
 
   title: {
@@ -626,7 +757,9 @@ const styles = StyleSheet.create({
     color: "#EDEDED",
     fontSize: 13,
     paddingHorizontal: 15,
-    paddingTop: Platform.OS === "android" ? 0 : 1,
+    paddingTop:
+      Platform.OS === "android" ? 0 : 1,
+       outlineStyle: 'none' as any,
   },
 
   inputIcon: {
@@ -650,35 +783,51 @@ const styles = StyleSheet.create({
   },
 
   phoneRow: {
-    height: 44,
     flexDirection: "row",
     gap: 8,
     marginBottom: 12,
+    alignItems: "flex-start",
   },
 
-  countryPicker: {
-    width: 62,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 22,
-    paddingHorizontal: 13,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#171717",
-  },
-
-  flag: {
-    fontSize: 18,
+  /*
+   * The CountryPicker component is normally a
+   * full-width picker.
+   *
+   * This wrapper gives it the space needed
+   * beside the phone number.
+   */
+  countryPickerWrapper: {
+    width: 67,
+    height: 50,
+    overflow: "hidden",
+    borderRadius: 17,
   },
 
   phoneInputShell: {
     flex: 1,
+    height: 50,
     borderWidth: 1,
     borderColor: BORDER,
-    borderRadius: 22,
-    overflow: "hidden",
+    borderRadius: 17,
     backgroundColor: "#171717",
+    flexDirection: "row",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+
+  dialCode: {
+    color: "#D9D9D9",
+    fontSize: 13,
+    paddingLeft: 14,
+    fontWeight: "500",
+  },
+
+  phoneInput: {
+    flex: 1,
+    height: "100%",
+    color: "#EDEDED",
+    fontSize: 13,
+    paddingHorizontal: 8,
   },
 
   continueWrap: {

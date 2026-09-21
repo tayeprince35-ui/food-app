@@ -1,5 +1,10 @@
+import CustomAlert from "@/components/CustomAlert";
+import GlassBackButton from "@/components/GlassBackButton";
 import { useCartStore } from "@/store/cartStore";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -9,13 +14,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 const CartScreen = () => {
   const cart = useCartStore((state) => state.cart);
   const clearCart = useCartStore((state) => state.clearCart);
   const increaseQty = useCartStore((state) => state.increaseQuantity);
   const decreaseQty = useCartStore((state) => state.decreaseQuantity);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
-
+const [showClearAlert, setShowClearAlert] = useState(false);
   const subtotal = cart.reduce((acc, item) => {
     const price =
       item.price;
@@ -28,6 +34,9 @@ const CartScreen = () => {
   const total = subtotal + deliveryFee + serviceCharge;
 
   const formatNaira = (amount: number) => `₦${amount.toLocaleString()}`;
+const clearFromCart = () => {
+  setShowClearAlert(true);
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -35,20 +44,30 @@ const CartScreen = () => {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#FFF" />
-        </TouchableOpacity>
+        <GlassBackButton />
+
 
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>My Cart</Text>
           <Text style={styles.headerSubtitle}>{cart.length} items</Text>
         </View>
 
-        <TouchableOpacity onPress={clearCart}>
+        <TouchableOpacity onPress={clearFromCart}>
           <Text style={styles.clearText}>Clear</Text>
         </TouchableOpacity>
       </View>
-
+<CustomAlert
+  visible={showClearAlert}
+  type="warning"
+  title="Clear Cart?"
+  message="Are you sure you want to remove all items from your cart?"
+  buttonText="Clear Cart"
+  onPress={() => {
+    clearCart();
+    setShowClearAlert(false);
+  }}
+  onClose={() => setShowClearAlert(false)}
+/>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -62,6 +81,8 @@ const CartScreen = () => {
               <View style={styles.cartItem}>
                 {/* Item Image Placeholder */}
                 <View
+                className="overflow-hidden
+                "
                   style={[
                     styles.itemImage,
                     {
@@ -69,11 +90,17 @@ const CartScreen = () => {
                     },
                   ]}
                 >
-                  <MaterialCommunityIcons
-                    name="food"
-                    size={24}
-                    color="#FFF"
-                  />
+                  <Image
+                  source={item.image}
+                  style={{
+                  width: '100%',
+                  height: '100%'         
+                                
+                    }}
+                   contentFit="cover"
+                   cachePolicy="memory-disk"
+                   transition={100}
+           />
                 </View>
 
                 {/* Item Details */}
@@ -196,11 +223,15 @@ const CartScreen = () => {
         <Text style={styles.footerText}>
           {cart.length} items in cart
         </Text>
-      </ScrollView>
-
-      {/* Floating Checkout Button */}
-      <View style={styles.checkoutContainer}>
-        <TouchableOpacity style={styles.checkoutButton}>
+        {/* Floating Checkout Button */}
+    
+      
+        <TouchableOpacity style={styles.checkoutButton} onPress={()=>router.push({
+  pathname: "/checkout",
+  params: {
+    total: total.toString(),
+  },
+})}>
           <View>
             <Text style={styles.checkoutText}>
               Proceed to Checkout
@@ -217,7 +248,10 @@ const CartScreen = () => {
             color="#FFF"
           />
         </TouchableOpacity>
-      </View>
+     
+      </ScrollView>
+
+       
     </SafeAreaView>
   );
 };
@@ -226,7 +260,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#121212",
-  },
+     },
 
   header: {
     flexDirection: "row",
@@ -252,19 +286,20 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: "#FFF",
     fontSize: 18,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   headerSubtitle: {
     color: "#34C759",
     fontSize: 12,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   clearText: {
     color: "#FF3B30",
     fontSize: 15,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
 
   scrollContent: {
@@ -275,11 +310,11 @@ const styles = StyleSheet.create({
   sectionHeader: {
     color: "#888",
     fontSize: 12,
-    fontWeight: "600",
     marginBottom: 10,
     marginTop: 10,
     letterSpacing: 0.5,
     textTransform: "uppercase",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   itemsContainer: {
@@ -316,9 +351,9 @@ const styles = StyleSheet.create({
   itemTitle: {
     color: "#FFF",
     fontSize: 15,
-    fontWeight: "600",
     flex: 1,
     marginRight: 8,
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   itemDescription: {
@@ -326,6 +361,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
     lineHeight: 16,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   itemBottomRow: {
@@ -338,7 +374,7 @@ const styles = StyleSheet.create({
   itemPrice: {
     color: "#34C759",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
 
   quantityContainer: {
@@ -356,8 +392,8 @@ const styles = StyleSheet.create({
   qtyText: {
     color: "#FFF",
     fontSize: 14,
-    fontWeight: "600",
     paddingHorizontal: 12,
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   divider: {
@@ -370,6 +406,7 @@ const styles = StyleSheet.create({
     color: "#888",
     textAlign: "center",
     padding: 20,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   billContainer: {
@@ -388,12 +425,13 @@ const styles = StyleSheet.create({
   billLabel: {
     color: "#888",
     fontSize: 14,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   billValue: {
     color: "#FFF",
     fontSize: 14,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
 
   billDivider: {
@@ -405,29 +443,22 @@ const styles = StyleSheet.create({
   totalLabel: {
     color: "#FFF",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
 
   totalValue: {
     color: "#34C759",
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
 
   footerText: {
     color: "#666",
     fontSize: 12,
     marginBottom: 20,
+    fontFamily: "PlusJakarta-Regular",
   },
 
-  checkoutContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    backgroundColor: "#121212",
-  },
 
   checkoutButton: {
     backgroundColor: "#34C759",
@@ -442,14 +473,14 @@ const styles = StyleSheet.create({
   checkoutText: {
     color: "#FFF",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
 
   checkoutSubtext: {
     color: "rgba(255,255,255,0.8)",
     fontSize: 11,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
 });
-
 export default CartScreen;

@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+import FavoriteButton from "@/components/FavoriteButton";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image, ImageBackground } from "expo-image";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -8,10 +12,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image, ImageBackground } from "expo-image";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
 
+import GlassBackButton from "@/components/GlassBackButton";
 import POPULAR_ITEMS from "@/data/food";
 import { useCartStore } from "@/store/cartStore";
 
@@ -32,31 +34,22 @@ const RestaurantScreen = () => {
   const addToCart = useCartStore((state) => state.addToCart);
   const cart = useCartStore((state) => state.cart);
 
-  const Dish = POPULAR_ITEMS.find(
-    (item) => item.id === Number(id)
-  );
+  const Dish = POPULAR_ITEMS.find((item) => item.id === Number(id));
 
   const restaurantDishes = POPULAR_ITEMS.filter(
-    (item) => item.restaurant === Dish?.restaurant
+    (item) => item.restaurant === Dish?.restaurant,
   );
 
-  const formatNaira = (amount: number) =>
-    `₦${amount.toLocaleString()}`;
+  const formatNaira = (amount: number) => `₦${amount.toLocaleString()}`;
 
   if (!Dish) {
     return (
       <SafeAreaView style={styles.notFound}>
         <StatusBar barStyle="light-content" />
 
-        <Ionicons
-          name="fast-food-outline"
-          size={60}
-          color="#34C759"
-        />
+        <Ionicons name="fast-food-outline" size={60} color="#34C759" />
 
-        <Text style={styles.notFoundTitle}>
-          Food not found
-        </Text>
+        <Text style={styles.notFoundTitle}>Food not found</Text>
 
         <Text style={styles.notFoundText}>
           We couldn't find this food item.
@@ -66,9 +59,7 @@ const RestaurantScreen = () => {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Text style={styles.backButtonText}>
-            Go back
-          </Text>
+          <Text style={styles.backButtonText}>Go back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -78,14 +69,12 @@ const RestaurantScreen = () => {
 
   const cartCount = cart.reduce(
     (total, item) => total + Number(item.quantity ?? 1),
-    0
+    0,
   );
 
   const cartTotal = cart.reduce(
-    (total, item) =>
-      total +
-      Number(item.price) * Number(item.quantity ?? 1),
-    0
+    (total, item) => total + Number(item.price) * Number(item.quantity ?? 1),
+    0,
   );
 
   const handleAddToCart = () => {
@@ -109,7 +98,6 @@ const RestaurantScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header Image */}
         <ImageBackground
           source={{ uri: Dish.image }}
           style={styles.headerImage}
@@ -117,31 +105,15 @@ const RestaurantScreen = () => {
         >
           <SafeAreaView style={styles.headerOverlay}>
             <View style={styles.headerTopRow}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => router.back()}
-              >
-                <Ionicons
-                  name="arrow-back"
-                  size={24}
-                  color="#FFF"
-                />
-              </TouchableOpacity>
+              <GlassBackButton />
 
               <View style={styles.headerRightIcons}>
                 <TouchableOpacity style={styles.iconButton}>
-                  <Ionicons
-                    name="heart-outline"
-                    size={24}
-                    color="#FFF"
-                  />
+                  <FavoriteButton id={id} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[
-                    styles.iconButton,
-                    { marginLeft: 10 },
-                  ]}
+                  style={[styles.iconButton, { marginLeft: 10 }]}
                 >
                   <Ionicons
                     name="share-social-outline"
@@ -157,16 +129,12 @@ const RestaurantScreen = () => {
         {/* Restaurant Information */}
         <View style={styles.infoSection}>
           <View style={styles.titleRow}>
-            <Text style={styles.restaurantName}>
-              {Dish.restaurant}
-            </Text>
+            <Text style={styles.restaurantName}>{Dish.restaurant}</Text>
 
             <View style={styles.openBadge}>
               <View style={styles.dot} />
 
-              <Text style={styles.openText}>
-                Open
-              </Text>
+              <Text style={styles.openText}>Open</Text>
             </View>
           </View>
 
@@ -176,17 +144,10 @@ const RestaurantScreen = () => {
 
           <View style={styles.statsRow}>
             <View style={styles.statBadge}>
-              <MaterialCommunityIcons
-                name="star"
-                size={14}
-                color="#FFC107"
-              />
+              <MaterialCommunityIcons name="star" size={14} color="#FFC107" />
 
               <Text style={styles.statText}>
-                <Text style={styles.boldText}>
-                  {Dish.rating}
-                </Text>{" "}
-                (289 Orders)
+                <Text style={styles.boldText}>{Dish.rating}</Text> (289 Orders)
               </Text>
             </View>
 
@@ -197,23 +158,15 @@ const RestaurantScreen = () => {
                 color="#AAA"
               />
 
-              <Text style={styles.statText}>
-                {Dish.deliveryTime}
-              </Text>
+              <Text style={styles.statText}>{Dish.deliveryTime}</Text>
             </View>
           </View>
 
           <View style={styles.statsRow}>
             <View style={styles.statBadge}>
-              <MaterialCommunityIcons
-                name="bike"
-                size={16}
-                color="#AAA"
-              />
+              <MaterialCommunityIcons name="bike" size={16} color="#AAA" />
 
-              <Text style={styles.statText}>
-                Free delivery
-              </Text>
+              <Text style={styles.statText}>Free delivery</Text>
             </View>
 
             <View style={styles.statBadge}>
@@ -223,24 +176,17 @@ const RestaurantScreen = () => {
                 color="#AAA"
               />
 
-              <Text style={styles.statText}>
-                0.8km away
-              </Text>
+              <Text style={styles.statText}>0.8km away</Text>
             </View>
           </View>
 
           {/* Promo */}
           <View style={styles.promoBanner}>
-            <Text style={styles.promoEmoji}>
-              🎉
-            </Text>
+            <Text style={styles.promoEmoji}>🎉</Text>
 
             <Text style={styles.promoText}>
-              Use code{" "}
-              <Text style={styles.promoCode}>
-                HEYBITE1
-              </Text>{" "}
-              for delivery on your first order!
+              Use code <Text style={styles.promoCode}>HEYBITE1</Text> for
+              delivery on your first order!
             </Text>
           </View>
         </View>
@@ -253,30 +199,23 @@ const RestaurantScreen = () => {
             contentContainerStyle={styles.categoriesScroll}
           >
             {CATEGORIES.map((cat) => {
-              const isActive =
-                activeCategory === cat.id;
+              const isActive = activeCategory === cat.id;
 
               return (
                 <TouchableOpacity
                   key={cat.id}
-                  onPress={() =>
-                    setActiveCategory(cat.id)
-                  }
+                  onPress={() => setActiveCategory(cat.id)}
                   style={[
                     styles.categoryChip,
-                    isActive &&
-                      styles.categoryChipActive,
+                    isActive && styles.categoryChipActive,
                   ]}
                 >
-                  <Text style={styles.categoryEmoji}>
-                    {cat.icon}
-                  </Text>
+                  <Text style={styles.categoryEmoji}>{cat.icon}</Text>
 
                   <Text
                     style={[
                       styles.categoryText,
-                      isActive &&
-                        styles.categoryTextActive,
+                      isActive && styles.categoryTextActive,
                     ]}
                   >
                     {cat.name}
@@ -285,100 +224,6 @@ const RestaurantScreen = () => {
               );
             })}
           </ScrollView>
-        </View>
-
-        {/* Selected Food */}
-        <View style={styles.selectedFoodSection}>
-          <Text style={styles.sectionTitle}>
-            {Dish.name}
-          </Text>
-
-          <View style={styles.selectedFoodCard}>
-            <Image
-              source={{ uri: Dish.image }}
-              style={styles.selectedFoodImage}
-              contentFit="cover"
-              cachePolicy="memory-disk"
-              transition={200}
-            />
-
-            <View style={styles.selectedFoodInfo}>
-              <Text style={styles.selectedFoodName}>
-                {Dish.name}
-              </Text>
-
-              <Text style={styles.selectedFoodDescription}>
-                Delicious {Dish.name.toLowerCase()} from{" "}
-                {Dish.restaurant}.
-              </Text>
-
-              <Text style={styles.selectedFoodPrice}>
-                {formatNaira(itemPrice)}
-              </Text>
-            </View>
-          </View>
-
-          {/* Quantity */}
-          <View style={styles.quantityRow}>
-            <Text style={styles.quantityLabel}>
-              Quantity
-            </Text>
-
-            <View style={styles.quantityControls}>
-              <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={() =>
-                  setQuantity((prev) =>
-                    Math.max(1, prev - 1)
-                  )
-                }
-              >
-                <Ionicons
-                  name="remove"
-                  size={20}
-                  color="#FFF"
-                />
-              </TouchableOpacity>
-
-              <Text style={styles.quantityText}>
-                {quantity}
-              </Text>
-
-              <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={() =>
-                  setQuantity((prev) => prev + 1)
-                }
-              >
-                <Ionicons
-                  name="add"
-                  size={20}
-                  color="#FFF"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Add To Cart */}
-          <TouchableOpacity
-            style={styles.addToCartButton}
-            onPress={handleAddToCart}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name="cart-outline"
-              size={21}
-              color="#FFF"
-            />
-
-            <Text style={styles.addToCartText}>
-              Add {quantity} to cart
-            </Text>
-
-            <Text style={styles.addToCartPrice}>
-              {formatNaira(itemPrice * quantity)}
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Restaurant Menu */}
@@ -411,16 +256,10 @@ const RestaurantScreen = () => {
               </View>
 
               <View style={styles.dishInfo}>
-                <Text style={styles.dishName}>
-                  {dish.name}
-                </Text>
+                <Text style={styles.dishName}>{dish.name}</Text>
 
-                <Text
-                  style={styles.dishDescription}
-                  numberOfLines={2}
-                >
-                  Delicious {dish.name.toLowerCase()} from{" "}
-                  {dish.restaurant}.
+                <Text style={styles.dishDescription} numberOfLines={2}>
+                  Delicious {dish.name.toLowerCase()} from {dish.restaurant}.
                 </Text>
 
                 <Text style={styles.dishPrice}>
@@ -430,11 +269,7 @@ const RestaurantScreen = () => {
 
               <View style={styles.addButtonWrapper}>
                 <View style={styles.addButton}>
-                  <Ionicons
-                    name="add"
-                    size={20}
-                    color="#FFF"
-                  />
+                  <Ionicons name="add" size={20} color="#FFF" />
                 </View>
               </View>
             </TouchableOpacity>
@@ -452,26 +287,16 @@ const RestaurantScreen = () => {
           >
             <View style={styles.cartLeft}>
               <View style={styles.cartCountBadge}>
-                <Text style={styles.cartCountText}>
-                  {cartCount}
-                </Text>
+                <Text style={styles.cartCountText}>{cartCount}</Text>
               </View>
 
-              <Text style={styles.cartButtonText}>
-                View cart
-              </Text>
+              <Text style={styles.cartButtonText}>View cart</Text>
             </View>
 
             <View style={styles.cartRight}>
-              <Text style={styles.cartTotalText}>
-                {formatNaira(cartTotal)}
-              </Text>
+              <Text style={styles.cartTotalText}>{formatNaira(cartTotal)}</Text>
 
-              <Ionicons
-                name="arrow-forward"
-                size={18}
-                color="#FFF"
-              />
+              <Ionicons name="arrow-forward" size={18} color="#FFF" />
             </View>
           </TouchableOpacity>
         </View>

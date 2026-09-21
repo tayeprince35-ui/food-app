@@ -1,4 +1,6 @@
+import CustomAlert from "@/components/CustomAlert";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -11,7 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from '@/lib/AuthContext';
-
+import type { Href } from "expo-router";
+import { router } from "expo-router";
+import GlassBackButton from "@/components/GlassBackButton";
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
 type MenuItemProps = {
@@ -21,6 +25,7 @@ type MenuItemProps = {
   subtitle: string;
   rightText?: string;
   rightBadge?: string;
+  href?: Href;  
 };
 
 type SwitchItemProps = {
@@ -33,7 +38,8 @@ type SwitchItemProps = {
 
 const ProfileScreen = () => {
   const { user : userData, logout } = useAuth();
-const username = userData?.user_metadata?.first_name + userData?.user_metadata?.last_name ;
+  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+const username = userData?.user_metadata?.first_name +  ` ` +  userData?.user_metadata?.last_name ;
 console.log(userData)
 
   // Hardcoded values for UI only
@@ -42,16 +48,27 @@ console.log(userData)
     email: "godfreyajayi25@gmail.com",
     balance: "4,300.00",
   };
-
+const handleLogout = () => {
+  setShowLogoutAlert(true);
+};
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
-
+<CustomAlert
+  visible={showLogoutAlert}
+  type="warning"
+  title="Log Out?"
+  message="Are you sure you want to log out of your HeyBite account?"
+  buttonText="Log Out"
+  onPress={async () => {
+        setShowLogoutAlert(false);
+    logout();
+  }}
+  onClose={() => setShowLogoutAlert(false)}
+/>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#FFF" />
-        </TouchableOpacity>
+        <GlassBackButton />
 
         <Text style={styles.headerTitle}>My Profile</Text>
 
@@ -219,11 +236,12 @@ console.log(userData)
             title="About HeyBite"
             subtitle="Version, terms, privacy policy"
             rightText="v1.0.0"
+            href="/aboutUs"  
           />
         </View>
 
         {/* Log Out */}
-        <TouchableOpacity style={styles.logoutButton} className="mb-20" onPress={logout}>
+        <TouchableOpacity style={styles.logoutButton} className="mb-20" onPress={handleLogout}>
           <Ionicons
             name="log-out-outline"
             size={20}
@@ -247,8 +265,9 @@ const MenuItem = ({
   subtitle,
   rightText,
   rightBadge,
+  href
 }: MenuItemProps) => (
-  <TouchableOpacity style={styles.menuItem}>
+  <TouchableOpacity style={styles.menuItem}  onPress={() => href && router.push(href)}>
     <View
       style={[
         styles.menuIconContainer,
@@ -340,7 +359,6 @@ const SwitchItem = ({
     />
   </View>
 );
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -362,7 +380,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: "#FFF",
     fontSize: 18,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   scrollContent: {
@@ -390,7 +408,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: "#FFF",
     fontSize: 28,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
 
   userDetails: {
@@ -400,13 +418,14 @@ const styles = StyleSheet.create({
   userName: {
     color: "#FFF",
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
 
   userEmail: {
     color: "#A0A0A0",
     fontSize: 14,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   badgeRow: {
@@ -433,7 +452,7 @@ const styles = StyleSheet.create({
   badgeTextGold: {
     color: "#FFD700",
     fontSize: 10,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   badgeGreen: {
@@ -445,7 +464,7 @@ const styles = StyleSheet.create({
   badgeTextGreen: {
     color: "#2E8B57",
     fontSize: 10,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   walletCard: {
@@ -471,14 +490,14 @@ const styles = StyleSheet.create({
   walletTitle: {
     color: "#A0D8B0",
     fontSize: 12,
-    fontWeight: "600",
     letterSpacing: 1,
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   walletBalance: {
     color: "#FFF",
     fontSize: 28,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
 
   walletSubtext: {
@@ -486,6 +505,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     marginBottom: 15,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   addCashButton: {
@@ -501,16 +521,16 @@ const styles = StyleSheet.create({
 
   addCashText: {
     color: "#FFF",
-    fontWeight: "600",
     fontSize: 14,
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   sectionHeader: {
     color: "#666",
     fontSize: 12,
-    fontWeight: "600",
     marginBottom: 10,
     letterSpacing: 0.5,
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   sectionContainer: {
@@ -549,13 +569,14 @@ const styles = StyleSheet.create({
   menuTitle: {
     color: "#FFF",
     fontSize: 15,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
 
   menuSubtitle: {
     color: "#888",
     fontSize: 12,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   menuRight: {
@@ -567,6 +588,7 @@ const styles = StyleSheet.create({
   rightText: {
     color: "#888",
     fontSize: 13,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   newBadge: {
@@ -579,7 +601,7 @@ const styles = StyleSheet.create({
   newBadgeText: {
     color: "#FF3B30",
     fontSize: 10,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   logoutButton: {
@@ -596,7 +618,7 @@ const styles = StyleSheet.create({
   logoutText: {
     color: "#FF3B30",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 });
 

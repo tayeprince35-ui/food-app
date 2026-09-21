@@ -1,3 +1,5 @@
+import FavoriteButton from "@/components/FavoriteButton";
+import PromoSliderr from "@/components/PromoSliderr.tsx";
 import { typography } from "@/constants/typography";
 import POPULAR_ITEMS from "@/data/food";
 import { useAuth } from "@/lib/AuthContext";
@@ -5,41 +7,30 @@ import { useCartStore } from "@/store/cartStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import Toast from "react-native-toast-message";
+import { useMemo, useState } from "react";
+import { FlatList, Pressable, ScrollView, Text, View } from "react-native";
 import grocery from "../../assets/icons/basket.png";
 import chicken from "../../assets/icons/chicken.png";
 import pizza from "../../assets/icons/pizza.png";
 import plate from "../../assets/icons/plate.png";
 import rice from "../../assets/icons/rice.png";
 import shawarma from "../../assets/icons/shawarma.png";
-
 const Container = require("./../../assets/icons/container.png");
 
 type Category = {
   id: string;
   name: string;
-  icon: any
+  icon: any;
 };
 
 const CATEGORIES: Category[] = [
   { id: "all", name: "All", icon: plate },
-  { id: "Rice", name: "Rice", icon: rice},
+  { id: "Rice", name: "Rice", icon: rice },
   { id: "Chicken", name: "Chicken", icon: chicken },
   { id: "Pizza", name: "Pizza", icon: pizza },
   { id: "Shawarma", name: "Shawarma", icon: shawarma },
   { id: "Grocery", name: "Grocery", icon: grocery },
 ];
-
 const FLASH_DEALS = [
   {
     id: "f1",
@@ -63,22 +54,13 @@ const FLASH_DEALS = [
       "https://images.unsplash.com/photo-1529006557810-274f4191000b?q=80&w=400&auto=format&fit=crop",
   },
 ];
+const Logo = require("../../assets/icons/logo.png");
 
 export default function Home() {
   const addToCart = useCartStore((state) => state.addToCart);
   const { user } = useAuth();
 
   const [activeCategory, setActiveCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debounced, setDebounced] = useState("");
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebounced(searchQuery);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   const randomizedFoods = useMemo(() => {
     return [...POPULAR_ITEMS].sort(() => Math.random() - 0.5);
@@ -86,16 +68,9 @@ export default function Home() {
 
   const filteredFoods = useMemo(() => {
     return randomizedFoods.filter((item) => {
-      const matchCategory =
-        activeCategory === "all" || activeCategory === item.category;
-
-      const matchSearch = item.name
-        .toLowerCase()
-        .includes(debounced.toLowerCase().trim());
-
-      return matchCategory && matchSearch;
+      return activeCategory === "all" || activeCategory === item.category;
     });
-  }, [randomizedFoods, activeCategory, debounced]);
+  }, [randomizedFoods, activeCategory]);
 
   return (
     <View className="flex-1 bg-[#0F1115]">
@@ -110,13 +85,17 @@ export default function Home() {
             <View className="px-5 pt-[60px] pb-2 flex-row justify-between items-center">
               <View className="flex-row items-center gap-2">
                 <View className="w-8 h-8 rounded-full bg-[#34C759] items-center justify-center">
-                  <Ionicons name="fast-food" size={16} color="#FFF" />
+                  <Image
+                    source={Logo}
+                    style={{
+                      width: 23,
+                      height: 23,
+                    }}
+                    contentFit="contain"
+                  />
                 </View>
 
-                <Text
-                  style={typography.bold}
-                  className="text-lg text-white"
-                >
+                <Text style={typography.bold} className="text-lg text-white">
                   HeyBite
                 </Text>
               </View>
@@ -153,30 +132,26 @@ export default function Home() {
                 style={typography.bold}
                 className="text-2xl text-white mt-1"
               >
-                What are you{" "}
-                <Text className="text-[#34C759]">craving</Text>
+                What are you <Text className="text-[#34C759]">craving</Text>
                 {"\n"}today, {user?.user_metadata?.firstName || "there"}?
               </Text>
             </View>
 
             {/* Search */}
             <View className="px-5 mt-5 flex-row gap-3">
-              <View className="h-[50px] flex-1 flex-row items-center gap-2 rounded-xl bg-[#1C1C1E] px-4">
-                <Ionicons
-                  name="search-outline"
-                  size={20}
-                  color="#777B84"
-                />
+              <Pressable
+                onPress={() => router.push("/search")}
+                className="h-[50px] flex-1 flex-row items-center gap-2 rounded-xl bg-[#1C1C1E] px-4"
+              >
+                <Ionicons name="search-outline" size={20} color="#777B84" />
 
-                <TextInput
-                  placeholder="Search restaurants, dishes..."
-                  placeholderTextColor="#777B84"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
+                <Text
                   style={typography.regular}
-                  className="flex-1 h-12 text-white text-sm"
-                />
-              </View>
+                  className="text-[#777B84] text-sm"
+                >
+                  Search restaurants, dishes...
+                </Text>
+              </Pressable>
 
               <Pressable className="h-[50px] w-[50px] bg-[#34C759] rounded-xl items-center justify-center">
                 <Ionicons name="filter" size={20} color="#FFF" />
@@ -184,92 +159,12 @@ export default function Home() {
             </View>
 
             {/* Promo Banner */}
-            <View className="mx-5 mt-5 bg-[#E54D2E] rounded-2xl p-5 overflow-hidden relative">
-              <View
-                className="absolute rounded-full bg-white/10"
-                style={{
-                  width: 140,
-                  height: 140,
-                  top: -40,
-                  right: -30,
-                }}
-              />
-
-              <View
-                className="absolute rounded-full bg-white/10"
-                style={{
-                  width: 100,
-                  height: 100,
-                  bottom: -30,
-                  right: 30,
-                }}
-              />
-
-              <View className="z-10 w-2/3">
-                <View className="bg-white/20 px-2 py-1 rounded-md self-start mb-2 flex-row items-center gap-1">
-                  <Ionicons name="flame" size={12} color="#FFF" />
-
-                  <Text
-                    style={typography.bold}
-                    className="text-white text-[10px]"
-                  >
-                    LIMITED TIME
-                  </Text>
-                </View>
-
-                <Text
-                  style={typography.bold}
-                  className="text-xl text-white leading-tight"
-                >
-                  Free delivery{"\n"}on first order!
-                </Text>
-
-                <Text
-                  style={typography.regular}
-                  className="text-white/80 text-xs mt-1"
-                >
-                  Use code:{" "}
-                  <Text style={typography.bold} className="text-white">
-                    HEYBITE1
-                  </Text>
-                </Text>
-
-                <Pressable
-                onPress={()=>router.push('/cart')}
-                  className="mt-3 bg-white py-2 px-4 rounded-lg self-start flex-row items-center gap-2"
-                >
-                  <Text
-                    style={typography.bold}
-                    className="text-[#E54D2E] text-xs"
-                  >
-                    Order now
-                  </Text>
-
-                  <Ionicons
-                    name="arrow-forward"
-                    size={14}
-                    color="#E54D2E"
-                  />
-                </Pressable>
-              </View>
-
-              <View className="absolute right-10 bottom-4 opacity-90 z-20">
-                <Image
-                  source={Container}
-                  style={{ width: 125, height: 125 }}
-                  contentFit="contain"
-                  cachePolicy="memory-disk"
-                />
-              </View>
-            </View>
+            <PromoSliderr />
 
             {/* Browse / Categories */}
             <View className="mt-8">
               <View className="px-5 flex-row justify-between items-end mb-4">
-                <Text
-                  style={typography.bold}
-                  className="text-lg text-white"
-                >
+                <Text style={typography.bold} className="text-lg text-white">
                   Browse
                 </Text>
 
@@ -281,11 +176,7 @@ export default function Home() {
                     All categories
                   </Text>
 
-                  <Ionicons
-                    name="arrow-forward"
-                    size={12}
-                    color="#34C759"
-                  />
+                  <Ionicons name="arrow-forward" size={12} color="#34C759" />
                 </Pressable>
               </View>
 
@@ -307,22 +198,23 @@ export default function Home() {
                       className="items-center gap-2"
                     >
                       <View
-                        className={`w-14 h-14 rounded-full items-center justify-center ${
-                          isActive
-                            ? "bg-[#34C759]"
-                            : "bg-[#1C1C1E]"
+                        className={`w-20 h-20 rounded-full items-center justify-center ${
+                          isActive ? "bg-[#34C759]" : "bg-[#1C1C1E]"
                         }`}
                       >
-                        
-                        <Image source={category.icon} style={{ width: 68, height: 68 }} contentFit="contain" cachePolicy="memory-disk" transition={100}  />
+                        <Image
+                          source={category.icon}
+                          style={{ width: 68, height: 68 }}
+                          contentFit="contain"
+                          cachePolicy="memory-disk"
+                          transition={100}
+                        />
                       </View>
 
                       <Text
                         style={typography.medium}
                         className={`text-xs ${
-                          isActive
-                            ? "text-[#34C759]"
-                            : "text-[#777B84]"
+                          isActive ? "text-[#34C759]" : "text-[#777B84]"
                         }`}
                       >
                         {category.name}
@@ -335,51 +227,33 @@ export default function Home() {
 
             {/* Flash Deals Header + Timer */}
             <View className="mt-8 px-5 flex-row justify-between items-center">
-              <Text
-                style={typography.bold}
-                className="text-lg text-white"
-              >
+              <Text style={typography.bold} className="text-lg text-white">
                 Flash Deals
               </Text>
 
               <View className="flex-row items-center gap-1">
                 <View className="bg-[#1C1C1E] px-1.5 py-0.5 rounded">
-                  <Text
-                    style={typography.bold}
-                    className="text-white text-xs"
-                  >
+                  <Text style={typography.bold} className="text-white text-xs">
                     02
                   </Text>
                 </View>
 
-                <Text
-                  style={typography.regular}
-                  className="text-white text-xs"
-                >
+                <Text style={typography.regular} className="text-white text-xs">
                   :
                 </Text>
 
                 <View className="bg-[#1C1C1E] px-1.5 py-0.5 rounded">
-                  <Text
-                    style={typography.bold}
-                    className="text-white text-xs"
-                  >
+                  <Text style={typography.bold} className="text-white text-xs">
                     13
                   </Text>
                 </View>
 
-                <Text
-                  style={typography.regular}
-                  className="text-white text-xs"
-                >
+                <Text style={typography.regular} className="text-white text-xs">
                   :
                 </Text>
 
                 <View className="bg-[#1C1C1E] px-1.5 py-0.5 rounded">
-                  <Text
-                    style={typography.bold}
-                    className="text-white text-xs"
-                  >
+                  <Text style={typography.bold} className="text-white text-xs">
                     11
                   </Text>
                 </View>
@@ -464,11 +338,7 @@ export default function Home() {
 
                 {/* Distance */}
                 <View className="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded-full flex-row items-center gap-1">
-                  <Ionicons
-                    name="location-outline"
-                    size={12}
-                    color="#FFF"
-                  />
+                  <Ionicons name="location-outline" size={12} color="#FFF" />
 
                   <Text
                     style={typography.medium}
@@ -480,11 +350,7 @@ export default function Home() {
 
                 {/* Heart */}
                 <View className="absolute top-3 right-3 bg-black/40 p-1.5 rounded-full">
-                  <Ionicons
-                    name="heart"
-                    size={18}
-                    color="#FFF"
-                  />
+                  <FavoriteButton id={item.id.toString()} />
                 </View>
 
                 {/* Free Delivery */}
@@ -511,11 +377,7 @@ export default function Home() {
                   </Text>
 
                   <View className="flex-row items-center gap-1">
-                    <Ionicons
-                      name="star"
-                      size={14}
-                      color="#F5A623"
-                    />
+                    <Ionicons name="star" size={14} color="#F5A623" />
 
                     <Text
                       style={typography.bold}
@@ -529,11 +391,7 @@ export default function Home() {
                 {/* Meta Row */}
                 <View className="flex-row items-center gap-3 mb-3">
                   <View className="flex-row items-center gap-1">
-                    <Ionicons
-                      name="time-outline"
-                      size={14}
-                      color="#777B84"
-                    />
+                    <Ionicons name="time-outline" size={14} color="#777B84" />
 
                     <Text
                       style={typography.regular}
@@ -543,9 +401,7 @@ export default function Home() {
                     </Text>
                   </View>
 
-                  <Text className="text-[#777B84] text-xs">
-                    •
-                  </Text>
+                  <Text className="text-[#777B84] text-xs">•</Text>
 
                   <View className="flex-row items-center gap-1">
                     <Ionicons
@@ -562,9 +418,7 @@ export default function Home() {
                     </Text>
                   </View>
 
-                  <Text className="text-[#777B84] text-xs">
-                    •
-                  </Text>
+                  <Text className="text-[#777B84] text-xs">•</Text>
 
                   <Text
                     style={typography.regular}
@@ -596,37 +450,6 @@ export default function Home() {
                 </View>
 
                 {/* Price + Add */}
-                <View className="flex-row justify-between items-center">
-                  <Text
-                    style={typography.bold}
-                    className="text-xl text-[#34C759]"
-                  >
-                    ₦{item.price.toLocaleString()}
-                  </Text>
-
-                  <TouchableOpacity
-                    className="h-10 w-10 rounded-xl bg-[#34C759] items-center justify-center"
-                    onPress={() => {
-                      addToCart({
-                        ...item,
-                        quantity: 1,
-                      });
-
-                      Toast.show({
-                        type: "success",
-                        text1: "Successfully added to cart.",
-                        visibilityTime: 1000,
-                      });
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name="add"
-                      size={20}
-                      color="#FFFFFF"
-                    />
-                  </TouchableOpacity>
-                </View>
               </View>
             </Pressable>
           </View>
@@ -637,16 +460,9 @@ export default function Home() {
         removeClippedSubviews={true}
         ListEmptyComponent={
           <View className="items-center justify-center pt-[60px] px-5">
-            <Ionicons
-              name="search-outline"
-              size={45}
-              color="#777B84"
-            />
+            <Ionicons name="search-outline" size={45} color="#777B84" />
 
-            <Text
-              style={typography.bold}
-              className="text-white text-lg mt-3"
-            >
+            <Text style={typography.bold} className="text-white text-lg mt-3">
               No food found
             </Text>
 
@@ -662,4 +478,3 @@ export default function Home() {
     </View>
   );
 }
-

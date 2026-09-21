@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "myExpoApp",
-    "slug": "myExpoApp",
+    "name": "heybite",
+    "slug": "heybite",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myexpoapp",
+    "scheme": "heybite",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
