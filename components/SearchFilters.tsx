@@ -82,10 +82,13 @@ const styles = StyleSheet.create({
   filterText: {
     color: "#888",
     fontSize: 14,
+    fontFamily: "PlusJakarta-semiBold",
+    
   },
 
   activeFilterText: {
     color: "#111",
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-Bold",
+    
   },
 });

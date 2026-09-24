@@ -12,6 +12,7 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isLoggingOut: boolean;
   logout: () => Promise<void>;
 };
 
@@ -21,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   useEffect(() => {
     let mounted = true;
 
@@ -52,9 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
-
   const logout = async () => {
-    await supabase.auth.signOut();
+    setIsLoggingOut(true);
+
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -63,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         isLoading,
+        isLoggingOut,
         logout,
       }}
     >

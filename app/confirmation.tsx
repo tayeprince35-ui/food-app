@@ -1,60 +1,195 @@
-// app/confirmation.tsx
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import {
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Confirmation() {
-  const { orderId, total } = useLocalSearchParams<{
-    orderId?: string;
-    total?: string;
-  }>();
+const COLORS = {
+  bg: "#0B0D0C",
+  card: "#141715",
+  cardBorder: "#232823",
+  green: "#22C55E",
+  greenDark: "#166534", // Darker green for the icon gradient effect
+  text: "#FFFFFF",
+  subtext: "#8E938F",
+};
 
+export default function OrderPlacedScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-[#08090B] px-8">
-      {/* Success icon */}
-      <View className="h-24 w-24 items-center justify-center rounded-full bg-[#32C48D]/20">
-        <Ionicons name="checkmark-circle" size={56} color="#32C48D" />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
 
-      <Text className="mt-6 text-[28px] font-bold text-white">
-        Order confirmed!
-      </Text>
+      <View style={styles.contentContainer}>
+        {/* Success Icon */}
+        <View style={styles.iconContainer} className="animate-bounce">
+          <View style={styles.iconInnerCircle}>
+            <Ionicons name="checkmark" size={48} color={COLORS.text} />
+          </View>
+        </View>
 
-      <Text className="mt-2 text-center text-[14px] text-[#858991]">
-        Your order has been placed and is being prepared.
-      </Text>
+        {/* Text Content */}
+        <Text style={styles.title}>Order Placed!</Text>
 
-      {/* Order info */}
-      <View className="mt-8 w-full rounded-2xl bg-[#121418] p-5">
-        <Text className="text-[12px] text-[#777B84]">Order number</Text>
-        <Text className="mt-1 text-[18px] font-bold text-white">
-          #{orderId?.slice(0, 8) ?? '---'}
+        <Text style={styles.subtitle}>
+          Your order from{" "}
+          <Text style={styles.highlightText}>Deco's Kitchen</Text> has been
+          {"\n"}
+          Confirmed and is being prepared right now.
         </Text>
 
-        {total && (
-          <>
-            <Text className="mt-4 text-[12px] text-[#777B84]">Total paid</Text>
-            <Text className="mt-1 text-[18px] font-bold text-[#FF8A3D]">
-              ₦{Number(total).toLocaleString()}
-            </Text>
-          </>
-        )}
+        {/* Order Number Badge */}
+        <View style={styles.orderBadge}>
+          <Text style={styles.orderBadgeText}>Order #HB-20483</Text>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            activeOpacity={0.8}
+            onPress={() => {
+              router.push("/TrackOrder");
+            }}
+          >
+            <Text style={styles.primaryButtonText}>Track my order</Text>
+            <Ionicons
+              name="arrow-forward"
+              size={18}
+              color={COLORS.text}
+              style={styles.buttonIcon}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            activeOpacity={0.8}
+            onPress={() => {
+              router.replace("/(tabs)");
+            }}
+          >
+            <Text style={styles.secondaryButtonText}>Back to home</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      {/* Buttons */}
-      <Pressable
-        onPress={() => router.push('/orders')}
-        className="mt-8 w-full items-center rounded-2xl bg-[#FF7A30] py-4">
-        <Text className="text-[16px] font-bold text-white">Track order</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push('/')}
-        className="mt-3 w-full items-center rounded-2xl bg-[#15171B] py-4">
-        <Text className="text-[16px] font-bold text-[#858991]">
-          Back to home
-        </Text>
-      </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.bg,
+  },
+  contentContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 60, // Offset to visually center the content
+  },
+
+  // Success Icon Styles
+  iconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.greenDark, // Outer darker circle
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 32,
+    // Adding a slight shadow for depth (optional, based on design)
+    shadowColor: COLORS.green,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  iconInnerCircle: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    backgroundColor: COLORS.green, // Inner bright circle
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.1)", // Subtle highlight border
+  },
+
+  // Typography
+  title: {
+    color: COLORS.text,
+    fontSize: 28,
+    fontFamily: "PlusJakarta-Bold",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  subtitle: {
+    color: COLORS.subtext,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-Regular",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  highlightText: {
+    color: COLORS.green,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+
+  // Order Badge
+  orderBadge: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 48, // Large gap before action buttons
+  },
+  orderBadgeText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-Medium",
+  },
+
+  // Action Buttons
+  actionsContainer: {
+    width: "100%",
+    gap: 12, // Space between buttons
+  },
+  primaryButton: {
+    flexDirection: "row",
+    backgroundColor: COLORS.green,
+    borderRadius: 30,
+    height: 56,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  primaryButtonText: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontFamily: "PlusJakarta-Bold",
+  },
+  buttonIcon: {
+    marginLeft: 8,
+  },
+  secondaryButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 30,
+    height: 56,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  secondaryButtonText: {
+    color: COLORS.subtext,
+    fontSize: 15,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+});

@@ -2,6 +2,7 @@ import CustomAlert from "@/components/CustomAlert";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,10 +13,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useAuth } from '@/lib/AuthContext';
+import GlassBackButton from "@/components/GlassBackButton";
+import { useAuth } from "@/lib/AuthContext";
 import type { Href } from "expo-router";
 import { router } from "expo-router";
-import GlassBackButton from "@/components/GlassBackButton";
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
 type MenuItemProps = {
@@ -25,7 +26,7 @@ type MenuItemProps = {
   subtitle: string;
   rightText?: string;
   rightBadge?: string;
-  href?: Href;  
+  href?: Href;
 };
 
 type SwitchItemProps = {
@@ -37,10 +38,14 @@ type SwitchItemProps = {
 };
 
 const ProfileScreen = () => {
-  const { user : userData, logout } = useAuth();
+  const { user: userData, logout, isLoading, isLoggingOut } = useAuth();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-const username = userData?.user_metadata?.first_name +  ` ` +  userData?.user_metadata?.last_name ;
-console.log(userData)
+
+  const username =
+    userData?.user_metadata?.first_name +
+    ` ` +
+    userData?.user_metadata?.last_name;
+  console.log(userData);
 
   // Hardcoded values for UI only
   const user = {
@@ -48,24 +53,31 @@ console.log(userData)
     email: "godfreyajayi25@gmail.com",
     balance: "4,300.00",
   };
-const handleLogout = () => {
-  setShowLogoutAlert(true);
-};
+  const handleLogout = () => {
+    setShowLogoutAlert(true);
+  };
+  if ( isLoggingOut || !userData)
+    return (
+      <SafeAreaView style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#4ADE80" />
+      </SafeAreaView>
+    );
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
-<CustomAlert
-  visible={showLogoutAlert}
-  type="warning"
-  title="Log Out?"
-  message="Are you sure you want to log out of your HeyBite account?"
-  buttonText="Log Out"
-  onPress={async () => {
-        setShowLogoutAlert(false);
-    logout();
-  }}
-  onClose={() => setShowLogoutAlert(false)}
-/>
+      <CustomAlert
+        visible={showLogoutAlert}
+        type="warning"
+        title="Log Out?"
+        message="Are you sure you want to log out of your HeyBite account?"
+        buttonText="Log Out"
+        onPress={() => {
+          logout();
+          setShowLogoutAlert(false);
+        }}
+        onClose={() => setShowLogoutAlert(false)}
+      />
       {/* Header */}
       <View style={styles.header}>
         <GlassBackButton />
@@ -82,27 +94,28 @@ const handleLogout = () => {
         {/* User Info Section */}
         <View style={styles.userInfoSection}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{userData?.user_metadata?.first_name?.charAt(0).toUpperCase() || "?"}</Text>
+            <Text style={styles.avatarText}>
+              {userData?.user_metadata?.first_name?.charAt(0).toUpperCase() ||
+                "?"}
+            </Text>
           </View>
 
           <View style={styles.userDetails}>
             <Text style={styles.userName}>{username}</Text>
 
-            <Text style={styles.userEmail}>{userData?.user_metadata?.email}</Text>
+            <Text style={styles.userEmail}>
+              {userData?.user_metadata?.email}
+            </Text>
 
             <View style={styles.badgeRow}>
               <View style={[styles.badge, styles.badgeGold]}>
                 <Ionicons name="star" size={12} color="#FFD700" />
 
-                <Text style={styles.badgeTextGold}>
-                  Gold Member
-                </Text>
+                <Text style={styles.badgeTextGold}>Gold Member</Text>
               </View>
 
               <View style={[styles.badge, styles.badgeGreen]}>
-                <Text style={styles.badgeTextGreen}>
-                  Ekpoma
-                </Text>
+                <Text style={styles.badgeTextGreen}>Ekpoma</Text>
               </View>
             </View>
           </View>
@@ -112,21 +125,13 @@ const handleLogout = () => {
         <View style={styles.walletCard}>
           <View style={styles.walletHeader}>
             <View style={styles.walletIconContainer}>
-              <MaterialCommunityIcons
-                name="wallet"
-                size={20}
-                color="#1E4D2B"
-              />
+              <MaterialCommunityIcons name="wallet" size={20} color="#1E4D2B" />
             </View>
 
-            <Text style={styles.walletTitle}>
-              HEYBITE WALLET
-            </Text>
+            <Text style={styles.walletTitle}>HEYBITE WALLET</Text>
           </View>
 
-          <Text style={styles.walletBalance}>
-            ₦{user.balance}
-          </Text>
+          <Text style={styles.walletBalance}>₦{user.balance}</Text>
 
           <Text style={styles.walletSubtext}>
             Available balance • Tap to manage
@@ -135,9 +140,7 @@ const handleLogout = () => {
           <TouchableOpacity style={styles.addCashButton}>
             <Ionicons name="add" size={18} color="#FFF" />
 
-            <Text style={styles.addCashText}>
-              Add Cash
-            </Text>
+            <Text style={styles.addCashText}>Add Cash</Text>
           </TouchableOpacity>
         </View>
 
@@ -150,6 +153,7 @@ const handleLogout = () => {
             iconColor="#8A2BE2"
             title="Personal info"
             subtitle="Name, phone"
+            href="/PersonalInfoScreen"
           />
 
           <View style={styles.divider} />
@@ -172,9 +176,7 @@ const handleLogout = () => {
         </View>
 
         {/* Preference Section */}
-        <Text style={styles.sectionHeader}>
-          PREFERENCE
-        </Text>
+        <Text style={styles.sectionHeader}>PREFERENCE</Text>
 
         <View style={styles.sectionContainer}>
           <SwitchItem
@@ -236,21 +238,19 @@ const handleLogout = () => {
             title="About HeyBite"
             subtitle="Version, terms, privacy policy"
             rightText="v1.0.0"
-            href="/aboutUs"  
+            href="/aboutUs"
           />
         </View>
 
         {/* Log Out */}
-        <TouchableOpacity style={styles.logoutButton} className="mb-20" onPress={handleLogout}>
-          <Ionicons
-            name="log-out-outline"
-            size={20}
-            color="#FF3B30"
-          />
+        <TouchableOpacity
+          style={styles.logoutButton}
+          className="mb-20"
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
 
-          <Text style={styles.logoutText}>
-            Log Out
-          </Text>
+          <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -265,9 +265,12 @@ const MenuItem = ({
   subtitle,
   rightText,
   rightBadge,
-  href
+  href,
 }: MenuItemProps) => (
-  <TouchableOpacity style={styles.menuItem}  onPress={() => href && router.push(href)}>
+  <TouchableOpacity
+    style={styles.menuItem}
+    onPress={() => href && router.push(href)}
+  >
     <View
       style={[
         styles.menuIconContainer,
@@ -276,41 +279,25 @@ const MenuItem = ({
         },
       ]}
     >
-      <Ionicons
-        name={icon}
-        size={18}
-        color={iconColor}
-      />
+      <Ionicons name={icon} size={18} color={iconColor} />
     </View>
 
     <View style={styles.menuContent}>
       <Text style={styles.menuTitle}>{title}</Text>
 
-      <Text style={styles.menuSubtitle}>
-        {subtitle}
-      </Text>
+      <Text style={styles.menuSubtitle}>{subtitle}</Text>
     </View>
 
     <View style={styles.menuRight}>
       {rightBadge && (
         <View style={styles.newBadge}>
-          <Text style={styles.newBadgeText}>
-            {rightBadge}
-          </Text>
+          <Text style={styles.newBadgeText}>{rightBadge}</Text>
         </View>
       )}
 
-      {rightText && (
-        <Text style={styles.rightText}>
-          {rightText}
-        </Text>
-      )}
+      {rightText && <Text style={styles.rightText}>{rightText}</Text>}
 
-      <Ionicons
-        name="chevron-forward"
-        size={16}
-        color="#666"
-      />
+      <Ionicons name="chevron-forward" size={16} color="#666" />
     </View>
   </TouchableOpacity>
 );
@@ -332,19 +319,13 @@ const SwitchItem = ({
         },
       ]}
     >
-      <Ionicons
-        name={icon}
-        size={18}
-        color={iconColor}
-      />
+      <Ionicons name={icon} size={18} color={iconColor} />
     </View>
 
     <View style={styles.menuContent}>
       <Text style={styles.menuTitle}>{title}</Text>
 
-      <Text style={styles.menuSubtitle}>
-        {subtitle}
-      </Text>
+      <Text style={styles.menuSubtitle}>{subtitle}</Text>
     </View>
 
     <Switch
@@ -360,11 +341,6 @@ const SwitchItem = ({
   </View>
 );
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -442,7 +418,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 4,
   },
-
+  container: {
+    flex: 1,
+    backgroundColor: "#121212",
+  },
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
   badgeGold: {
     backgroundColor: "rgba(218, 165, 32, 0.2)",
     borderWidth: 1,

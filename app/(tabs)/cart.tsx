@@ -1,4 +1,5 @@
 import CustomAlert from "@/components/CustomAlert";
+import EmptyCart from "@/components/EmptyCart";
 import GlassBackButton from "@/components/GlassBackButton";
 import { useCartStore } from "@/store/cartStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,10 +22,9 @@ const CartScreen = () => {
   const increaseQty = useCartStore((state) => state.increaseQuantity);
   const decreaseQty = useCartStore((state) => state.decreaseQuantity);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
-const [showClearAlert, setShowClearAlert] = useState(false);
+  const [showClearAlert, setShowClearAlert] = useState(false);
   const subtotal = cart.reduce((acc, item) => {
-    const price =
-      item.price;
+    const price = item.price;
 
     return acc + price * item.quantity;
   }, 0);
@@ -34,9 +34,9 @@ const [showClearAlert, setShowClearAlert] = useState(false);
   const total = subtotal + deliveryFee + serviceCharge;
 
   const formatNaira = (amount: number) => `₦${amount.toLocaleString()}`;
-const clearFromCart = () => {
-  setShowClearAlert(true);
-};
+  const clearFromCart = () => {
+    setShowClearAlert(true);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,7 +45,6 @@ const clearFromCart = () => {
       {/* Header */}
       <View style={styles.header}>
         <GlassBackButton />
-
 
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>My Cart</Text>
@@ -56,18 +55,18 @@ const clearFromCart = () => {
           <Text style={styles.clearText}>Clear</Text>
         </TouchableOpacity>
       </View>
-<CustomAlert
-  visible={showClearAlert}
-  type="warning"
-  title="Clear Cart?"
-  message="Are you sure you want to remove all items from your cart?"
-  buttonText="Clear Cart"
-  onPress={() => {
-    clearCart();
-    setShowClearAlert(false);
-  }}
-  onClose={() => setShowClearAlert(false)}
-/>
+      <CustomAlert
+        visible={showClearAlert}
+        type="warning"
+        title="Clear Cart?"
+        message="Are you sure you want to remove all items from your cart?"
+        buttonText="Clear Cart"
+        onPress={() => {
+          clearCart();
+          setShowClearAlert(false);
+        }}
+        onClose={() => setShowClearAlert(false)}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -81,26 +80,25 @@ const clearFromCart = () => {
               <View style={styles.cartItem}>
                 {/* Item Image Placeholder */}
                 <View
-                className="overflow-hidden
+                  className="overflow-hidden
                 "
                   style={[
                     styles.itemImage,
                     {
-                      backgroundColor:  "#2E8B57",
+                      backgroundColor: "#2E8B57",
                     },
                   ]}
                 >
                   <Image
-                  source={item.image}
-                  style={{
-                  width: '100%',
-                  height: '100%'         
-                                
+                    source={item.image}
+                    style={{
+                      width: "100%",
+                      height: "100%",
                     }}
-                   contentFit="cover"
-                   cachePolicy="memory-disk"
-                   transition={100}
-           />
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={100}
+                  />
                 </View>
 
                 {/* Item Details */}
@@ -108,31 +106,20 @@ const clearFromCart = () => {
                   <View style={styles.itemHeaderRow}>
                     <Text style={styles.itemTitle}>{item.name}</Text>
 
-                    <TouchableOpacity
-                      onPress={() => removeFromCart(item.id)}
-                    >
-                      <Ionicons
-                        name="trash-outline"
-                        size={18}
-                        color="#666"
-                      />
+                    <TouchableOpacity onPress={() => removeFromCart(item.id)}>
+                      <Ionicons name="trash-outline" size={18} color="#666" />
                     </TouchableOpacity>
                   </View>
 
-                  <Text
-                    style={styles.itemDescription}
-                    numberOfLines={2}
-                  >
-                   
-                      "Nigerian Party jollof with smoky tomato base, served with a juicy fried chicken piece
+                  <Text style={styles.itemDescription} numberOfLines={2}>
+                    "Nigerian Party jollof with smoky tomato base, served with a
+                    juicy fried chicken piece
                   </Text>
 
                   {/* Price and Quantity Controls */}
                   <View style={styles.itemBottomRow}>
                     <Text style={styles.itemPrice}>
-                      {formatNaira(
-                       item.price
-                      )}
+                      {formatNaira(item.price)}
                     </Text>
 
                     <View style={styles.quantityContainer}>
@@ -140,118 +127,96 @@ const clearFromCart = () => {
                         style={styles.qtyButton}
                         onPress={() => decreaseQty(item.id)}
                       >
-                        <Ionicons
-                          name="remove"
-                          size={16}
-                          color="#FFF"
-                        />
+                        <Ionicons name="remove" size={16} color="#FFF" />
                       </TouchableOpacity>
 
-                      <Text style={styles.qtyText}>
-                        {item.quantity}
-                      </Text>
+                      <Text style={styles.qtyText}>{item.quantity}</Text>
 
                       <TouchableOpacity
                         style={styles.qtyButton}
                         onPress={() => increaseQty(item.id)}
                       >
-                        <Ionicons
-                          name="add"
-                          size={16}
-                          color="#FFF"
-                        />
+                        <Ionicons name="add" size={16} color="#FFF" />
                       </TouchableOpacity>
                     </View>
                   </View>
                 </View>
               </View>
 
-              {index < cart.length - 1 && (
-                <View style={styles.divider} />
-              )}
+              {index < cart.length - 1 && <View style={styles.divider} />}
             </View>
           ))}
 
           {cart.length === 0 && (
-            <Text style={styles.emptyText}>
-              Your cart is empty.
-            </Text>
+            <EmptyCart onPressShopNow={() => router.push("/")} />
           )}
         </View>
 
         {/* Bill Details Section */}
-        <Text style={styles.sectionHeader}>Bill details</Text>
 
-        <View style={styles.billContainer}>
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>Item subtotal</Text>
-            <Text style={styles.billValue}>
-              {formatNaira(subtotal)}
-            </Text>
-          </View>
+        {cart.length !== 0 && (
+          <>
+            <Text style={styles.sectionHeader}>Bill details</Text>
 
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>Delivery fee</Text>
+            <View style={styles.billContainer}>
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Item subtotal</Text>
+                <Text style={styles.billValue}>{formatNaira(subtotal)}</Text>
+              </View>
 
-            <Text
-              style={[
-                styles.billValue,
-                { color: "#34C759" },
-              ]}
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Delivery fee</Text>
+
+                <Text style={[styles.billValue, { color: "#34C759" }]}>
+                  Free
+                </Text>
+              </View>
+
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Service Charge</Text>
+                <Text style={styles.billValue}>
+                  {formatNaira(serviceCharge)}
+                </Text>
+              </View>
+
+              <View style={styles.billDivider} />
+
+              <View style={styles.billRow}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalValue}>{formatNaira(total)}</Text>
+              </View>
+            </View>
+          </>
+        )}
+        {cart.length !== 0 && (
+          <>
+            <Text style={styles.footerText}>{cart.length} items in cart</Text>
+            {/* Floating Checkout Button */}
+
+            <TouchableOpacity
+              style={styles.checkoutButton}
+              onPress={() =>
+                router.push({
+                  pathname: "/checkout",
+                  params: {
+                    total: total.toString(),
+                  },
+                })
+              }
             >
-              Free
-            </Text>
-          </View>
+              <View>
+                <Text style={styles.checkoutText}>Proceed to Checkout</Text>
 
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>Service Charge</Text>
-            <Text style={styles.billValue}>
-              {formatNaira(serviceCharge)}
-            </Text>
-          </View>
+                <Text style={styles.checkoutSubtext}>
+                  Estimated delivery • 10-20 minutes
+                </Text>
+              </View>
 
-          <View style={styles.billDivider} />
-
-          <View style={styles.billRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>
-              {formatNaira(total)}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.footerText}>
-          {cart.length} items in cart
-        </Text>
-        {/* Floating Checkout Button */}
-    
-      
-        <TouchableOpacity style={styles.checkoutButton} onPress={()=>router.push({
-  pathname: "/checkout",
-  params: {
-    total: total.toString(),
-  },
-})}>
-          <View>
-            <Text style={styles.checkoutText}>
-              Proceed to Checkout
-            </Text>
-
-            <Text style={styles.checkoutSubtext}>
-              Estimated delivery • 10-20 minutes
-            </Text>
-          </View>
-
-          <Ionicons
-            name="arrow-forward"
-            size={20}
-            color="#FFF"
-          />
-        </TouchableOpacity>
-     
+              <Ionicons name="arrow-forward" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
-
-       
     </SafeAreaView>
   );
 };
@@ -260,7 +225,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#121212",
-     },
+  },
 
   header: {
     flexDirection: "row",
@@ -458,7 +423,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: "PlusJakarta-Regular",
   },
-
 
   checkoutButton: {
     backgroundColor: "#34C759",

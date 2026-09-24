@@ -1,60 +1,122 @@
-import { router } from 'expo-router';
-import { useEffect } from 'react';
-import { Image, Text, View } from 'react-native';
+import { LinearGradient } from "expo-linear-gradient";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export default function Splash() {
+const { width, height } = Dimensions.get("window");
+
+const foodIcons = [
+  { icon: "hamburger", x: 0.72, y: 0.12, size: 52 },
+  { icon: "fish", x: 0.84, y: 0.20, size: 42 },
+  { icon: "silverware-fork-knife", x: 0.86, y: 0.39, size: 42 },
+  { icon: "carrot", x: 0.75, y: 0.52, size: 42 },
+  { icon: "pizza", x: 0.48, y: 0.61, size: 42 },
+  { icon: "cart", x: 0.22, y: 0.72, size: 42 },
+  { icon: "leaf", x: 0.73, y: 0.69, size: 38 },
+  { icon: "cheese", x: 0.88, y: 0.77, size: 40 },
+  { icon: "food-drumstick-outline", x: 0.12, y: 0.39, size: 38 },
+  { icon: "noodles", x: 0.16, y: 0.53, size: 40 },
+  { icon: "food", x: 0.16, y: 0.17, size: 35 },
+  { icon: "cup", x: 0.24, y: 0.12, size: 42 },
+  { icon: "bottle-soda-outline", x: 0.57, y: 0.30, size: 40 },
+  { icon: "silverware", x: 0.42, y: 0.83, size: 42 },
+  { icon: "cookie", x: 0.12, y: 0.88, size: 42 },
+];
+
+export default function Index() {
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/(auth)/onboarding');
-    }, 3000);
+      // router.replace("/(auth)/onboarding");
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <View className="flex-1 overflow-hidden bg-[#F97316]">
-      {/* Background decoration */}
-      <View className="absolute -right-24 -top-20 h-80 w-80 rounded-full bg-orange-400" />
-      <View className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-[#C2410C]" />
+    <View style={styles.container}>
+      <StatusBar style="light" />
 
-      <View className="absolute left-10 top-32 h-3 w-3 rounded-full bg-orange-200" />
-      <View className="absolute right-12 top-1/3 h-5 w-5 rounded-full bg-orange-300" />
+      <LinearGradient
+        colors={["#00C853", "#08752F"]}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 0.8, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
 
-      {/* Main content */}
-      <View className="flex-1 items-center justify-center">
-        <View className="items-center">
-          <View className="h-44 w-44 items-center justify-center rounded-[45px] bg-white shadow-2xl elevation-lg">
-            <Image
-              source={require('../assets/images/logo.png')}
-              className="h-32 w-32"
-              resizeMode="contain"
-            />
-          </View>
+      {/* Floating food icons */}
+      {foodIcons.map((item, index) => (
+        <MaterialCommunityIcons
+          key={index}
+          name={item.icon }
+          size={item.size}
+          color="rgba(255,255,255,0.32)"
+          style={[
+            styles.foodIcon,
+            {
+              left: width * item.x,
+              top: height * item.y,
+            },
+          ]}
+        />
+      ))}
 
-          <Text className="mt-8 text-5xl font-extrabold text-white">
-            Foodie
-          </Text>
-
-          <View className="mt-4 h-1 w-12 rounded-full bg-white" />
-
-          <Text className="mt-5 text-base font-medium text-orange-50">
-            Delicious meals
-          </Text>
-
-          <Text className="text-base font-medium text-orange-100">
-            delivered straight to you
-          </Text>
+      {/* Center logo */}
+      <View style={styles.logoContainer}>
+        <View style={styles.cookie}>
+          <MaterialCommunityIcons
+            name="cookie"
+            size={52}
+            color="#fff"
+          />
         </View>
+
+        <Text style={styles.logoText}>HeyBite</Text>
       </View>
 
-      {/* Footer */}
-      <View className="absolute bottom-10 left-0 right-0 items-center">
-        <Text className="text-xs font-semibold uppercase tracking-[3px] text-orange-100">
-          Made with love
-        </Text>
-
-        <Text className="mt-2 text-lg text-white">♥</Text>
-      </View>
+      {/* Bottom text */}
+      <Text style={styles.bottomText}>
+        Food & Grocery Delivery
+      </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#08752F",
+  },
+
+  foodIcon: {
+    position: "absolute",
+  },
+
+  logoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  cookie: {
+    marginRight: 3,
+  },
+
+  logoText: {
+    color: "#fff",
+    fontSize: 42,
+    fontWeight: "700",
+    letterSpacing: -1.5,
+  },
+
+  bottomText: {
+    position: "absolute",
+    bottom: 30,
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "400",
+  },
+});

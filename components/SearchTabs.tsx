@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
   tabs: {
     flexDirection: "row",
     marginBottom: 20,
+    
   },
 
   tabContainer: {
@@ -66,8 +67,9 @@ const styles = StyleSheet.create({
 
   tab: {
     color: "#888",
-    fontSize: 16,
+    fontSize: 15,
     marginBottom: 6,
+    fontFamily: "PlusJakarta-semiBold",
   },
 
   activeTab: {

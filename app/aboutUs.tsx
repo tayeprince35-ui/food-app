@@ -108,16 +108,7 @@ export default function AboutUsScreen() {
 
         {/* STATS OVERLAY SECTION */}
         <View style={styles.statsGrid}>
-          {stats.map((stat, index) => (
-            <LinearGradient
-              key={index}
-              colors={['rgba(16, 44, 34, 0.8)', 'rgba(5, 20, 14, 0.6)']}
-              style={styles.statCard}
-            >
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </LinearGradient>
-          ))}
+         
         </View>
 
         {/* PHILOSOPHY & STORY */}
@@ -302,12 +293,12 @@ const styles = StyleSheet.create({
   badgeText: {
     color: COLORS.emeraldBright,
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'PlusJakarta-Bold',
     letterSpacing: 1.5,
   },
   heroTitle: {
     fontSize: 36,
-    fontWeight: '900',
+    fontFamily: 'PlusJakarta-Bold', // Mapped from '900'
     color: COLORS.textLight,
     letterSpacing: -0.5,
     marginBottom: 8,
@@ -316,7 +307,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.textMuted,
     lineHeight: 22,
-    fontWeight: '400',
+    fontFamily: 'PlusJakarta-Regular',
   },
 
   /* STATS */
@@ -338,7 +329,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: 'PlusJakarta-Bold',
     color: COLORS.emeraldBright,
     marginBottom: 4,
   },
@@ -346,7 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textMuted,
     textAlign: 'center',
-    fontWeight: '500',
+    fontFamily: 'PlusJakarta-Medium',
   },
 
   /* SECTIONS GENERAL */
@@ -357,13 +348,13 @@ const styles = StyleSheet.create({
   sectionTag: {
     color: COLORS.emeraldPrimary,
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: 'PlusJakarta-Bold',
     letterSpacing: 2,
     marginBottom: 6,
   },
   sectionTitle: {
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: 'PlusJakarta-Bold',
     color: COLORS.textLight,
     marginBottom: 20,
   },
@@ -392,11 +383,11 @@ const styles = StyleSheet.create({
   tabText: {
     color: COLORS.textMuted,
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'PlusJakarta-SemiBold',
   },
   activeTabText: {
     color: COLORS.textLight,
-    fontWeight: '700',
+    fontFamily: 'PlusJakarta-Bold',
   },
   glassCard: {
     backgroundColor: COLORS.cardBg,
@@ -409,6 +400,7 @@ const styles = StyleSheet.create({
     color: '#B5C9BE',
     fontSize: 15,
     lineHeight: 24,
+    fontFamily: 'PlusJakarta-Regular',
   },
 
   /* VALUES */
@@ -438,13 +430,14 @@ const styles = StyleSheet.create({
   valueTitle: {
     color: COLORS.textLight,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'PlusJakarta-Bold',
     marginBottom: 4,
   },
   valueDescription: {
     color: COLORS.textMuted,
     fontSize: 13,
     lineHeight: 18,
+    fontFamily: 'PlusJakarta-Regular',
   },
 
   /* TEAM CAROUSEL */
@@ -478,13 +471,13 @@ const styles = StyleSheet.create({
   teamName: {
     color: COLORS.textLight,
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: 'PlusJakarta-Bold',
   },
   teamRole: {
     color: COLORS.emeraldBright,
     fontSize: 12,
     marginTop: 2,
-    fontWeight: '600',
+    fontFamily: 'PlusJakarta-SemiBold',
   },
 
   /* CTA */
@@ -504,7 +497,7 @@ const styles = StyleSheet.create({
   },
   ctaTitle: {
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'PlusJakarta-bold',
     color: COLORS.textLight,
     textAlign: 'center',
     marginBottom: 8,
@@ -515,6 +508,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
+    fontFamily: 'PlusJakarta-Regular',
   },
   ctaButtonWrapper: {
     width: '100%',
@@ -530,7 +524,7 @@ const styles = StyleSheet.create({
   },
   ctaButtonText: {
     color: '#030E0A',
-    fontWeight: '800',
+    fontFamily: 'PlusJakarta-Bold',
     fontSize: 15,
   },
 
@@ -551,11 +545,12 @@ const styles = StyleSheet.create({
   footerBrand: {
     color: COLORS.emeraldBright,
     fontSize: 16,
-    fontWeight: '900',
+    fontFamily: 'PlusJakarta-ExtraBold',
     letterSpacing: 3,
   },
   footerText: {
     color: '#4B6356',
     fontSize: 12,
+    fontFamily: 'PlusJakarta-Regular',
   },
 });

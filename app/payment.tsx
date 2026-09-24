@@ -1,381 +1,371 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  Banknote,
-  CreditCard,
-} from "lucide-react-native";
+import GlassBackButton from "@/components/GlassBackButton";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const MOCK_DATA = {
-  orderId: "HB-20243",
-  totalAmount: "₦4,300",
-  itemCount: 3,
-  paymentMethods: [
-    {
-      id: "cod",
-      title: "Cash on Delivery",
-      description: "Pay with cash when your order arrives",
-      icon: Banknote,
-    },
-    {
-      id: "transfer",
-      title: "Bank Transfer",
-      description: "Virtual account-Auto confirm",
-      icon: CreditCard,
-    },
-    {
-      id: "opay",
-      title: "Opay",
-      description: "Pay via your Opay wallet",
-      icon: CreditCard,
-    },
-    {
-      id: "ussd",
-      title: "USSD",
-      description: "Works without internet-Dial to pay",
-      icon: CreditCard,
-    },
-  ],
+import { router } from "expo-router";
+const COLORS = {
+  bg: "#0B0D0C", // Dark background
+  card: "#141715", // Slightly lighter card background
+  cardBorder: "#232823", // Dark border
+  green: "#22C55E", // Primary green
+  greenDim: "rgba(34,197,94,0.08)", 
+  text: "#FFFFFF",
+  subtext: "#8E938F",
+  radioBorder: "#4A4F4B",
 };
 
-export default function PayOnlineScreen() {
-  const [selectedMethodId, setSelectedMethodId] = useState<string>("transfer");
+// Payment methods data
+const PAYMENT_METHODS = [
+  {
+    id: "cod",
+    title: "Cash on Delivery",
+    subtitle: "Pay with cash when your order arrives",
+    icon: "cash",
+    iconType: "MaterialCommunityIcons",
+  },
+  {
+    id: "bank",
+    title: "Bank Transfer",
+    subtitle: "Virtual account-Auto confirm",
+    icon: "bank",
+    iconType: "MaterialCommunityIcons",
+  },
+  {
+    id: "opay",
+    title: "Opay",
+    subtitle: "Pay via your Opay wallet",
+    icon: "wallet",
+    iconType: "MaterialCommunityIcons",
+  },
+  {
+    id: "ussd",
+    title: "USSD",
+    subtitle: "Works without internet-Dial to pay",
+    icon: "cellphone",
+    iconType: "MaterialCommunityIcons",
+  },
+];
 
-  const selectedMethod = MOCK_DATA.paymentMethods.find(
-    (m) => m.id === selectedMethodId,
-  );
+const PayOnlineScreen = () => {
+  const [selectedMethod, setSelectedMethod] = useState("bank"); // Default to Bank Transfer
+
+  // Find the currently selected method object to display its name at the bottom
+  const activeMethodData = PAYMENT_METHODS.find((m) => m.id === selectedMethod);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
-            <ArrowLeft size={18} color="#FFFFFF" />
-          </TouchableOpacity>
+          <GlassBackButton />
           <Text style={styles.headerTitle}>Pay Online</Text>
         </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          style={styles.scrollView}
-        >
-          {/* Total Amount Card */}
-          <View style={styles.amountCard}>
-            <View>
-              <Text style={styles.amountCardLabel}>TOTAL AMOUNT</Text>
-              <Text style={styles.amountCardValue}>
-                {MOCK_DATA.totalAmount}
-              </Text>
-            </View>
-
-            <View style={styles.orderInfoContainer}>
-              <Text style={styles.orderIdText}>Order #{MOCK_DATA.orderId}</Text>
-              <View style={styles.itemBadge}>
-                <Text style={styles.itemBadgeText}>
-                  {MOCK_DATA.itemCount} items
-                </Text>
-              </View>
+        {/* Total Amount Card */}
+        <View style={styles.totalCard}>
+          <View style={styles.totalCardLeft}>
+            <Text style={styles.totalLabel}>TOTAL AMOUNT</Text>
+            <Text style={styles.totalAmount}>₦4,300</Text>
+          </View>
+          <View style={styles.totalCardRight}>
+            <Text style={styles.orderNumber}>Order #HB-20243</Text>
+            <View style={styles.itemBadge}>
+              <Text style={styles.itemBadgeText}>3 items</Text>
             </View>
           </View>
+        </View>
 
-          {/* Section Title */}
-          <Text style={styles.sectionTitle}>HOW WOULD YOU LIKE TO PAY?</Text>
+        {/* Section Title */}
+        <Text style={styles.sectionTitle}>HOW WOULD YOU LIKE TO PAY?</Text>
 
-          {/* Payment Methods Options */}
-          <View style={styles.methodsContainer}>
-            {MOCK_DATA.paymentMethods.map((method) => {
-              const isSelected = selectedMethodId === method.id;
-              const IconComponent = method.icon;
+        {/* Payment Methods List */}
+        <View style={styles.methodsList}>
+          {PAYMENT_METHODS.map((method) => {
+            const isSelected = selectedMethod === method.id;
 
-              return (
-                <TouchableOpacity
-                  key={method.id}
-                  activeOpacity={0.8}
-                  onPress={() => setSelectedMethodId(method.id)}
+            return (
+              <TouchableOpacity
+                key={method.id}
+                activeOpacity={0.8}
+                onPress={() => setSelectedMethod(method.id)}
+                style={[
+                  styles.methodCard,
+                  isSelected && styles.methodCardSelected,
+                ]}
+              >
+                <View style={styles.methodIconContainer}>
+                  <MaterialCommunityIcons
+                    name={method.icon as any}
+                    size={22}
+                    color={COLORS.green}
+                  />
+                </View>
+
+                <View style={styles.methodInfo}>
+                  <Text style={styles.methodTitle}>{method.title}</Text>
+                  <Text style={styles.methodSubtitle}>{method.subtitle}</Text>
+                </View>
+
+                {/* Radio Button */}
+                <View
                   style={[
-                    styles.methodCard,
-                    isSelected
-                      ? styles.methodCardSelected
-                      : styles.methodCardUnselected,
+                    styles.radioOuter,
+                    isSelected && { borderColor: COLORS.green },
                   ]}
                 >
-                  <View style={styles.methodInfoRow}>
-                    <View
-                      style={[
-                        styles.iconWrapper,
-                        isSelected
-                          ? styles.iconWrapperSelected
-                          : styles.iconWrapperUnselected,
-                      ]}
-                    >
-                      <IconComponent
-                        size={20}
-                        color={isSelected ? "#10B981" : "#6B7280"}
-                      />
-                    </View>
+                  {isSelected && <View style={styles.radioInner} />}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-                    <View style={styles.textContainer}>
-                      <Text style={styles.methodTitle}>{method.title}</Text>
-                      <Text style={styles.methodDescription}>
-                        {method.description}
-                      </Text>
-                    </View>
-                  </View>
+        {/* Footer Info */}
+        <View style={styles.footerInfo}>
+          <Text style={styles.payingWithText}>Paying with: </Text>
+          <View style={styles.payingWithDot} />
+          <Text style={styles.payingWithMethod}>{activeMethodData?.title}</Text>
+        </View>
+      </ScrollView>
 
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      isSelected
-                        ? styles.radioOuterSelected
-                        : styles.radioOuterUnselected,
-                    ]}
-                  >
-                    {isSelected && <View style={styles.radioInner} />}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
-
-        {/* Footer Payment Action */}
-        <View style={styles.footer}>
-          <View style={styles.payingWithRow}>
-            <Text style={styles.payingWithLabel}>Paying with: </Text>
-            <View style={styles.payingWithDot} />
-            <Text style={styles.payingWithValue}>
-              {selectedMethod?.title || ""}
+      {/* Make Payment Button */}
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity
+          style={styles.payButton}
+          activeOpacity={0.9}
+          onPress={() => {
+            router.push("/PayOnlineScreen");
+          }}
+        >
+          <View>
+            <Text style={styles.payButtonTitle}>Make Payment</Text>
+            <Text style={styles.payButtonSubtitle}>
+              {activeMethodData?.title}
             </Text>
           </View>
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.payButton}>
-            <View>
-              <Text style={styles.payButtonText}>Make Payment</Text>
-              <Text style={styles.payButtonSubtext}>
-                Pay {MOCK_DATA.totalAmount} • {selectedMethod?.title}
-              </Text>
-            </View>
-
-            <ArrowRight size={20} color="#051D14" />
-          </TouchableOpacity>
-        </View>
+          <View style={styles.payButtonRight}>
+            <Text style={styles.payButtonAmount}>(Pay ₦4,300)</Text>
+            <Ionicons
+              name="arrow-forward"
+              size={20}
+              color={COLORS.text}
+              style={{ marginLeft: 8 }}
+            />
+          </View>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#000000",
-  },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    backgroundColor: COLORS.bg,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 100, // Space for the bottom button
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 24,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#000000",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-    marginRight: 12,
+    marginTop: 10,
   },
   headerTitle: {
-    color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "700",
+    color: COLORS.text,
+    fontSize: 18,
+    fontFamily: "PlusJakarta-Bold",
+    marginLeft: 16,
   },
-  scrollView: {
-    flex: 1,
-  },
-  amountCard: {
-    backgroundColor: "#181D1A",
-    padding: 16,
+  totalCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.4)",
-    marginBottom: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    borderColor: COLORS.cardBorder,
+    padding: 16,
+    marginBottom: 32,
   },
-  amountCardLabel: {
-    color: "#10B981",
-    fontSize: 12,
-    fontWeight: "600",
+  totalCardLeft: {
+    flex: 1,
+  },
+  totalLabel: {
+    color: COLORS.green,
+    fontSize: 11,
+    fontFamily: "PlusJakarta-SemiBold",
     letterSpacing: 0.5,
     marginBottom: 4,
   },
-  amountCardValue: {
-    color: "#FFFFFF",
-    fontSize: 24,
-    fontWeight: "700",
+  totalAmount: {
+    color: COLORS.text,
+    fontSize: 26,
+    fontFamily: "PlusJakarta-Bold",
   },
-  orderInfoContainer: {
+  totalCardRight: {
     alignItems: "flex-end",
   },
-  orderIdText: {
-    color: "#A3A3A3",
+  orderNumber: {
+    color: COLORS.subtext,
     fontSize: 12,
-    marginBottom: 4,
+    fontFamily: "PlusJakarta-Regular",
+    marginBottom: 8,
   },
   itemBadge: {
-    backgroundColor: "#10291D",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 9999,
+    backgroundColor: "rgba(34, 197, 94, 0.15)",
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.3)",
+    borderColor: "rgba(34, 197, 94, 0.4)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   itemBadgeText: {
-    color: "#34D399",
+    color: COLORS.green,
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
   sectionTitle: {
-    color: "#A3A3A3",
+    color: COLORS.subtext,
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
     letterSpacing: 0.5,
     marginBottom: 16,
+    textTransform: "uppercase",
   },
-  methodsContainer: {
-    gap: 0,
+  methodsList: {
+    gap: 12,
   },
   methodCard: {
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-    backgroundColor: "#181D1A",
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 16,
+    padding: 16,
   },
   methodCardSelected: {
-    borderColor: "#10B981",
+    borderColor: COLORS.green,
+    backgroundColor: COLORS.greenDim,
   },
-  methodCardUnselected: {
-    borderColor: "#262626",
-  },
-  methodInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-    marginRight: 12,
-  },
-  iconWrapper: {
+  methodIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    alignItems: "center",
+    borderRadius: 10,
+    backgroundColor: "rgba(34, 197, 94, 0.1)",
     justifyContent: "center",
-    marginRight: 12,
-    borderWidth: 1,
+    alignItems: "center",
+    marginRight: 14,
   },
-  iconWrapperSelected: {
-    backgroundColor: "rgba(6, 78, 59, 0.8)",
-    borderColor: "rgba(16, 185, 129, 0.3)",
-  },
-  iconWrapperUnselected: {
-    backgroundColor: "rgba(38, 38, 38, 0.8)",
-    borderColor: "rgba(64, 64, 64, 0.5)",
-  },
-  textContainer: {
+  methodInfo: {
     flex: 1,
   },
   methodTitle: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 14,
+    color: COLORS.text,
+    fontSize: 15,
+    fontFamily: "PlusJakarta-SemiBold",
+    marginBottom: 4,
   },
-  methodDescription: {
-    color: "#A3A3A3",
+  methodSubtitle: {
+    color: COLORS.subtext,
     fontSize: 12,
-    marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
+    lineHeight: 16,
   },
   radioOuter: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    borderWidth: 2,
-    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: COLORS.radioBorder,
     justifyContent: "center",
-  },
-  radioOuterSelected: {
-    borderColor: "#10B981",
-  },
-  radioOuterUnselected: {
-    borderColor: "#525252",
+    alignItems: "center",
+    marginLeft: 10,
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#10B981",
+    backgroundColor: COLORS.green,
   },
-  footer: {
-    paddingVertical: 16,
-    backgroundColor: "#121413",
-  },
-  payingWithRow: {
+  footerInfo: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
-    paddingHorizontal: 4,
+    justifyContent: "center",
+    marginTop: 30,
+    marginBottom: 20,
   },
-  payingWithLabel: {
-    color: "#A3A3A3",
-    fontSize: 12,
+  payingWithText: {
+    color: COLORS.subtext,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-Regular",
   },
   payingWithDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#10B981",
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.green,
     marginHorizontal: 6,
   },
-  payingWithValue: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
+  payingWithMethod: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+  bottomButtonContainer: {
+    padding: 20,
+    paddingBottom: 30,
+    backgroundColor: COLORS.bg,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.05)", // Subtle divider
   },
   payButton: {
-    backgroundColor: "#10B981",
-    height: 56,
-    borderRadius: 28,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: COLORS.green,
+    borderRadius: 30,
+    paddingVertical: 16,
     paddingHorizontal: 24,
   },
-  payButtonText: {
-    color: "#051D14",
-    fontWeight: "700",
+  payButtonTitle: {
+    color: COLORS.text,
     fontSize: 16,
+    fontFamily: "PlusJakarta-Bold",
   },
-  payButtonSubtext: {
-    color: "rgba(5, 29, 20, 0.8)",
+  payButtonSubtitle: {
+    color: "rgba(255,255,255,0.8)",
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
+    marginTop: 2,
+  },
+  payButtonRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  payButtonAmount: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontFamily: "PlusJakarta-Bold",
   },
 });
+
+export default PayOnlineScreen;

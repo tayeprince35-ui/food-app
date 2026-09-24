@@ -11,8 +11,7 @@ import {
   View,
 } from "react-native";
 
-const { width } = Dimensions.get("window");
-const SLIDE_WIDTH = width;
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const AUTO_SLIDE_INTERVAL = 4500;
 const RESUME_DELAY = 1000;
 
@@ -121,17 +120,28 @@ const SLIDES = [DeliveryCard, DiscountCard, NewItemsCard];
 
 export default function PromoSlider() {
   const [isPaused, setIsPaused] = useState(false);
+  // Measured width of the actual container this component renders in.
+  // Falls back to screen width until onLayout fires, so there's no
+  // flash of zero-width content on first mount.
+  const [slideWidth, setSlideWidth] = useState(SCREEN_WIDTH);
 
   const scrollRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const currentIndex = useRef(0);
-  const autoSlideTimer = useRef<NodeJS.Timeout | null>(null);
-  const resumeTimer = useRef<NodeJS.Timeout | null>(null);
+  const autoSlideTimer = useRef<number | null>(null);
+  const resumeTimer = useRef<number | null>(null);
+
+  const handleLayout = (e: any) => {
+    const measuredWidth = e.nativeEvent.layout.width;
+    if (measuredWidth > 0 && measuredWidth !== slideWidth) {
+      setSlideWidth(measuredWidth);
+    }
+  };
 
   // Keep ref synchronized on manual touch scroll
   const handleScroll = (event: any) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const newIndex = Math.round(contentOffsetX / SLIDE_WIDTH);
+    const newIndex = Math.round(contentOffsetX / slideWidth);
     if (newIndex >= 0 && newIndex < SLIDES.length) {
       currentIndex.current = newIndex;
     }
@@ -141,7 +151,7 @@ export default function PromoSlider() {
   const goTo = (i: number) => {
     currentIndex.current = i;
     scrollRef.current?.scrollTo({
-      x: i * SLIDE_WIDTH,
+      x: i * slideWidth,
       animated: true,
     });
   };
@@ -174,7 +184,7 @@ export default function PromoSlider() {
     return () => {
       if (autoSlideTimer.current) clearInterval(autoSlideTimer.current);
     };
-  }, [isPaused]);
+  }, [isPaused, slideWidth]);
 
   useEffect(() => {
     return () => {
@@ -184,21 +194,19 @@ export default function PromoSlider() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={handleLayout}>
       <Animated.ScrollView
         ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
-        snapToInterval={SLIDE_WIDTH}
-        snapToAlignment="center"
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
           {
             useNativeDriver: false,
             listener: handleScroll,
-          }
+          },
         )}
         scrollEventThrottle={16}
         onTouchStart={handleTouchStart}
@@ -207,7 +215,7 @@ export default function PromoSlider() {
         onScrollEndDrag={handleTouchEnd}
       >
         {SLIDES.map((Slide, i) => (
-          <View key={i} style={{ width: SLIDE_WIDTH }}>
+          <View key={i} style={{ width: slideWidth }}>
             <View style={styles.cardPadding}>
               <Slide index={i} />
             </View>
@@ -220,9 +228,9 @@ export default function PromoSlider() {
         {SLIDES.map((_, i) => {
           const dotWidth = scrollX.interpolate({
             inputRange: [
-              (i - 1) * SLIDE_WIDTH,
-              i * SLIDE_WIDTH,
-              (i + 1) * SLIDE_WIDTH,
+              (i - 1) * slideWidth,
+              i * slideWidth,
+              (i + 1) * slideWidth,
             ],
             outputRange: [8, 20, 8],
             extrapolate: "clamp",
@@ -230,9 +238,9 @@ export default function PromoSlider() {
 
           const dotColor = scrollX.interpolate({
             inputRange: [
-              (i - 1) * SLIDE_WIDTH,
-              i * SLIDE_WIDTH,
-              (i + 1) * SLIDE_WIDTH,
+              (i - 1) * slideWidth,
+              i * slideWidth,
+              (i + 1) * slideWidth,
             ],
             outputRange: ["#3a3a3a", DOT_COLORS[i], "#3a3a3a"],
             extrapolate: "clamp",
@@ -260,7 +268,6 @@ const styles = StyleSheet.create({
   },
   cardPadding: {
     paddingHorizontal: 16,
-    width: "100%",
   },
   card: {
     height: 220,

@@ -1,6 +1,10 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from 'react';
+import GlassBackButton from "@/components/GlassBackButton";
+import { useCartTotal } from "@/hooks/useCartTotal";
+import { useCartStore } from "@/store/cartStore";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -9,59 +13,70 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 const COLORS = {
-  bg: '#0B0D0C',
-  card: '#141715',
-  cardBorder: '#232823',
-  green: '#22C55E',
-  greenDim: 'rgba(34,197,94,0.12)',
-  red: '#EF4444',
-  text: '#FFFFFF',
-  subtext: '#8E938F',
-  chipBg: '#1B1F1C',
+  bg: "#0B0D0C",
+  card: "#141715",
+  cardBorder: "#232823",
+  green: "#22C55E",
+  greenDim: "rgba(34,197,94,0.12)",
+  red: "#EF4444",
+  text: "#FFFFFF",
+  subtext: "#8E938F",
+  chipBg: "#1B1F1C",
 };
 
-const NOTE_CHIPS = ['Call on arrival', 'Drop at gate', "I'm hungry!", 'Handle carefully'];
-
-const ORDER_ITEMS = [
-  { id: '1', name: 'Jollof + Chicken', variant: 'Regular · Extra spicy', qty: 1, price: 2200, emoji: '🍛' },
-  { id: '2', name: 'Beef Suya', variant: 'Regular · Extra spicy', qty: 2, price: 2100, emoji: '🍢' },
-  { id: '3', name: 'Chilled Zobo Drinks', variant: 'Regular · Extra spicy', qty: 1, price: 400, emoji: '🥤' },
+const NOTE_CHIPS = [
+  "Call on arrival",
+  "Drop at gate",
+  "I'm hungry!",
+  "Handle carefully",
 ];
 
 const naira = (n: number) => `₦${n.toLocaleString()}`;
 
 export default function CheckoutScreen() {
-  const [note, setNote] = useState('');
-  const [activeChip, setActiveChip] = useState('Call on arrival');
-  const [paymentMethod, setPaymentMethod] = useState<'online' | 'wallet'>('online');
- const { subtotal } = useLocalSearchParams<{ subtotal: string }>();
+  const [note, setNote] = useState("");
+  const [activeChip, setActiveChip] = useState("Call on arrival");
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "wallet">(
+    "online",
+  );
+  
+  // --- WIRED UP TO CART STORE ---
+  const { cart, removeFromCart } = useCartStore();
+  const total = useCartTotal();
+
+  // Calculate total number of items (summing quantities)
+  const totalItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const deliveryFee = 0;
   const promo = -500;
   const serviceCharge = 100;
-  const total = Number(subtotal) + deliveryFee + promo + serviceCharge;
+  const totalPayment = total + deliveryFee + promo + serviceCharge;
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity>
-            <Ionicons name="chevron-back" size={24} color={COLORS.text} />
-          </TouchableOpacity>
+          <GlassBackButton />
           <Text style={styles.headerTitle}>Checkout</Text>
           <Text style={styles.headerStep}>Step 2 of 2</Text>
         </View>
 
         {/* Progress */}
         <View style={styles.progressRow}>
-          <StepDot label="CART" state="done" />
-          <View style={[styles.progressLine, { backgroundColor: COLORS.green }]} />
-          <StepDot label="CHECKOUT" state="active" number={2} />
+          <StepDot label="CART" state="active" number={1} />
+          <View
+            style={[styles.progressLine, { backgroundColor: COLORS.green }]}
+          />
+          <StepDot label="CHECKOUT" state="done" />
           <View style={styles.progressLine} />
           <StepDot label="TRACKING" state="pending" number={3} />
         </View>
@@ -69,10 +84,17 @@ export default function CheckoutScreen() {
         {/* Delivery address */}
         <SectionHeader title="Delivery address" action="Change" />
         <View style={[styles.card, styles.cardSelected, styles.row]}>
-          <Ionicons name="location" size={20} color={COLORS.green} style={{ marginRight: 10 }} />
+          <Ionicons
+            name="location"
+            size={20}
+            color={COLORS.green}
+            style={{ marginRight: 10 }}
+          />
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>No. 12 Uromi Road, Ekpoma</Text>
-            <Text style={styles.cardSubtitle}>Near AAU main gate Edo State</Text>
+            <Text style={styles.cardSubtitle}>
+              Near AAU main gate Edo State
+            </Text>
           </View>
           <Ionicons name="checkmark-circle" size={20} color={COLORS.green} />
         </View>
@@ -94,10 +116,14 @@ export default function CheckoutScreen() {
             return (
               <TouchableOpacity
                 key={chip}
-                onPress={() => setActiveChip(selected ? '' : chip)}
+                onPress={() => setActiveChip(selected ? "" : chip)}
                 style={[styles.chip, selected && styles.chipSelected]}
               >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{chip}</Text>
+                <Text
+                  style={[styles.chipText, selected && styles.chipTextSelected]}
+                >
+                  {chip}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -121,36 +147,43 @@ export default function CheckoutScreen() {
           icon={<Feather name="credit-card" size={18} color={COLORS.green} />}
           title="Pay Online"
           subtitle="Card, Bank transfer, USSD, Opay"
-          selected={paymentMethod === 'online'}
-          onPress={() => setPaymentMethod('online')}
+          selected={paymentMethod === "online"}
+          onPress={() => setPaymentMethod("online")}
         />
         <PaymentOption
           icon={<Ionicons name="wallet" size={18} color={COLORS.text} />}
           title="HeyBite Wallet"
           subtitle="Balance: ₦4,200"
-          selected={paymentMethod === 'wallet'}
-          onPress={() => setPaymentMethod('wallet')}
+          selected={paymentMethod === "wallet"}
+          onPress={() => setPaymentMethod("wallet")}
         />
 
         {/* Order items */}
         <View style={[styles.sectionHeaderRow, { marginTop: 24 }]}>
           <Text style={styles.sectionTitle}>Your Order</Text>
-          <Text style={styles.itemCount}>{ORDER_ITEMS.length} item</Text>
+          <Text style={styles.itemCount}>{totalItemCount} items</Text>
         </View>
 
-        {ORDER_ITEMS.map((item) => (
+        {cart.map((item) => (
           <View key={item.id} style={styles.orderItemRow}>
             <View style={styles.orderIcon}>
-              <Text style={{ fontSize: 18 }}>{item.emoji}</Text>
+              <Image
+                source={{ uri: item.image }}
+                style={{ width: 34, height: 34 }}
+                className="rounded-full"
+                contentFit="cover"
+              />
             </View>
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.cardSubtitle}>{item.variant}</Text>
             </View>
             <Text style={styles.orderPrice}>
-              x{item.qty} {naira(item.price)}
+              x{item.quantity} {naira(item.price)}
             </Text>
-            <TouchableOpacity style={{ marginLeft: 8 }}>
+            <TouchableOpacity 
+              style={{ marginLeft: 8 }}
+              onPress={() => removeFromCart(item.id)}
+            >
               <Feather name="trash-2" size={16} color={COLORS.red} />
             </TouchableOpacity>
           </View>
@@ -159,16 +192,31 @@ export default function CheckoutScreen() {
         {/* Bill details */}
         <SectionHeader title="Bill details" style={{ marginTop: 24 }} />
         <View style={styles.card}>
-          <BillRow label="Item subtotal" value={naira(Number(subtotal))} />
-          <BillRow label="Delivery fee" value="Free" valueColor={COLORS.green} />
-          <BillRow label="Promo (HEYBITE)" value={`-${naira(500)}`} valueColor={COLORS.red} />
+          <BillRow label="Item subtotal" value={naira(Number(total))} />
+          <BillRow
+            label="Delivery fee"
+            value="Free"
+            valueColor={COLORS.green}
+          />
+          <BillRow
+            label="Promo (HEYBITE)"
+            value={`-${naira(500)}`}
+            valueColor={COLORS.red}
+          />
           <BillRow label="Service charge" value={naira(serviceCharge)} />
           <View style={styles.divider} />
-          <BillRow label="Total" value={naira(total)} bold valueColor={COLORS.green} />
+          <BillRow
+            label="Total"
+            value={naira(totalPayment)}
+            bold
+            valueColor={COLORS.green}
+          />
         </View>
 
         <View style={styles.savingsBanner}>
-          <Text style={styles.savingsText}>🎉 You're saving {naira(500)} on this order!</Text>
+          <Text style={styles.savingsText}>
+            🎉 You're saving {naira(500)} on this order!
+          </Text>
         </View>
 
         <View style={styles.etaRow}>
@@ -179,14 +227,22 @@ export default function CheckoutScreen() {
 
       {/* Place order */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.placeOrderBtn} onPress={()=>router.push('/payment')}>
+        <TouchableOpacity
+          style={styles.placeOrderBtn}
+          onPress={() => router.push("/payment")}
+        >
           <View>
             <Text style={styles.placeOrderTitle}>Place Order</Text>
             <Text style={styles.placeOrderSubtitle}>Pay Online</Text>
           </View>
           <View style={styles.placeOrderRight}>
             <Text style={styles.placeOrderTitle}>({naira(total)})</Text>
-            <Ionicons name="arrow-forward" size={18} color={COLORS.bg} style={{ marginLeft: 8 }} />
+            <Ionicons
+              name="arrow-forward"
+              size={18}
+              color={COLORS.bg}
+              style={{ marginLeft: 8 }}
+            />
           </View>
         </TouchableOpacity>
       </View>
@@ -194,15 +250,26 @@ export default function CheckoutScreen() {
   );
 }
 
-function StepDot({ label, state, number }: { label: string; state: 'done' | 'active' | 'pending'; number?: number }) {
-  const isDone = state === 'done';
-  const isActive = state === 'active';
+function StepDot({
+  label,
+  state,
+  number,
+}: {
+  label: string;
+  state: "done" | "active" | "pending";
+  number?: number;
+}) {
+  const isDone = state === "done";
+  const isActive = state === "active";
   return (
     <View style={styles.stepDotWrap}>
       <View
         style={[
           styles.stepCircle,
-          isDone && { backgroundColor: COLORS.green, borderColor: COLORS.green },
+          isDone && {
+            backgroundColor: COLORS.green,
+            borderColor: COLORS.green,
+          },
           isActive && { borderColor: COLORS.green },
           !isDone && !isActive && { borderColor: COLORS.cardBorder },
         ]}
@@ -210,17 +277,33 @@ function StepDot({ label, state, number }: { label: string; state: 'done' | 'act
         {isDone ? (
           <Ionicons name="checkmark" size={14} color={COLORS.bg} />
         ) : (
-          <Text style={{ color: isActive ? COLORS.green : COLORS.subtext, fontSize: 12, fontWeight: '600' }}>
+          <Text
+            style={{
+              color: isActive ? COLORS.green : COLORS.subtext,
+              fontSize: 12,
+              fontFamily: "PlusJakarta-SemiBold",
+            }}
+          >
             {number}
           </Text>
         )}
       </View>
-      <Text style={[styles.stepLabel, isActive && { color: COLORS.text }]}>{label}</Text>
+      <Text style={[styles.stepLabel, isActive && { color: COLORS.text }]}>
+        {label}
+      </Text>
     </View>
   );
 }
 
-function SectionHeader({ title, action, style }: { title: string; action?: string; style?: object }) {
+function SectionHeader({
+  title,
+  action,
+  style,
+}: {
+  title: string;
+  action?: string;
+  style?: object;
+}) {
   return (
     <View style={[styles.sectionHeaderRow, style]}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -249,14 +332,21 @@ function PaymentOption({
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.card, styles.row, selected && styles.cardSelected, { marginTop: 10 }]}
+      style={[
+        styles.card,
+        styles.row,
+        selected && styles.cardSelected,
+        { marginTop: 10 },
+      ]}
     >
       <View style={styles.paymentIconWrap}>{icon}</View>
       <View style={{ flex: 1, marginLeft: 10 }}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardSubtitle}>{subtitle}</Text>
       </View>
-      <View style={[styles.radioOuter, selected && { borderColor: COLORS.green }]}>
+      <View
+        style={[styles.radioOuter, selected && { borderColor: COLORS.green }]}
+      >
         {selected && <View style={styles.radioInner} />}
       </View>
     </TouchableOpacity>
@@ -276,14 +366,19 @@ function BillRow({
 }) {
   return (
     <View style={styles.billRow}>
-      <Text style={[styles.billLabel, bold && { color: COLORS.text, fontWeight: '700', fontSize: 16 }]}>
+      <Text
+        style={[
+          styles.billLabel,
+          bold && { color: COLORS.text, fontFamily: "PlusJakarta-Bold", fontSize: 16 },
+        ]}
+      >
         {label}
       </Text>
       <Text
         style={[
           styles.billValue,
           valueColor ? { color: valueColor } : null,
-          bold && { fontWeight: '700', fontSize: 16 },
+          bold && { fontFamily: "PlusJakarta-Bold", fontSize: 16 },
         ]}
       >
         {value}
@@ -295,27 +390,48 @@ function BillRow({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
   scroll: { padding: 16, paddingBottom: 24 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
-  headerTitle: { color: COLORS.text, fontSize: 16, fontWeight: '600' },
-  headerStep: { color: COLORS.subtext, fontSize: 12 },
-  progressRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
-  progressLine: { flex: 1, height: 1, backgroundColor: COLORS.cardBorder, marginHorizontal: 4 },
-  stepDotWrap: { alignItems: 'center' },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  headerTitle: { color: COLORS.text, fontSize: 16, fontFamily: "PlusJakarta-SemiBold" },
+  headerStep: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
+  progressRow: { flexDirection: "row", alignItems: "center", marginBottom: 24 },
+  progressLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.cardBorder,
+    marginHorizontal: 4,
+  },
+  stepDotWrap: { alignItems: "center" },
   stepCircle: {
     width: 28,
     height: 28,
     borderRadius: 14,
     borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  stepLabel: { color: COLORS.subtext, fontSize: 10, marginTop: 4, letterSpacing: 0.5 },
+  stepLabel: {
+    color: COLORS.subtext,
+    fontSize: 10,
+    marginTop: 4,
+    letterSpacing: 0.5,
+    fontFamily: "PlusJakarta-Regular",
+  },
 
-  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  sectionTitle: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
-  sectionAction: { color: COLORS.green, fontSize: 13 },
-  charCount: { color: COLORS.subtext, fontSize: 12 },
-  itemCount: { color: COLORS.green, fontSize: 13 },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  sectionTitle: { color: COLORS.text, fontSize: 15, fontFamily: "PlusJakarta-SemiBold" },
+  sectionAction: { color: COLORS.green, fontSize: 13, fontFamily: "PlusJakarta-Regular" },
+  charCount: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
+  itemCount: { color: COLORS.green, fontSize: 13, fontFamily: "PlusJakarta-Regular" },
 
   card: {
     backgroundColor: COLORS.card,
@@ -325,24 +441,24 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
   },
   cardSelected: { borderColor: COLORS.green, backgroundColor: COLORS.greenDim },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  cardTitle: { color: COLORS.text, fontSize: 14, fontWeight: '600' },
-  cardSubtitle: { color: COLORS.subtext, fontSize: 12, marginTop: 2 },
+  row: { flexDirection: "row", alignItems: "center" },
+  cardTitle: { color: COLORS.text, fontSize: 14, fontFamily: "PlusJakarta-SemiBold" },
+  cardSubtitle: { color: COLORS.subtext, fontSize: 12, marginTop: 2, fontFamily: "PlusJakarta-Regular" },
 
   addAddressBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderRadius: 14,
     paddingVertical: 14,
     marginTop: 10,
   },
-  addAddressText: { color: COLORS.text, fontSize: 14, marginLeft: 6 },
+  addAddressText: { color: COLORS.text, fontSize: 14, marginLeft: 6, fontFamily: "PlusJakarta-Regular" },
 
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 },
   chip: {
     backgroundColor: COLORS.chipBg,
     borderRadius: 20,
@@ -352,8 +468,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
   },
   chipSelected: { backgroundColor: COLORS.greenDim, borderColor: COLORS.green },
-  chipText: { color: COLORS.subtext, fontSize: 12 },
-  chipTextSelected: { color: COLORS.green, fontWeight: '600' },
+  chipText: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
+  chipTextSelected: { color: COLORS.green, fontFamily: "PlusJakarta-SemiBold" },
 
   noteBox: {
     backgroundColor: COLORS.card,
@@ -363,15 +479,15 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: 70,
   },
-  noteInput: { color: COLORS.text, fontSize: 13, textAlignVertical: 'top' },
+  noteInput: { color: COLORS.text, fontSize: 13, textAlignVertical: "top", fontFamily: "PlusJakarta-Regular" },
 
   paymentIconWrap: {
     width: 32,
     height: 32,
     borderRadius: 8,
     backgroundColor: COLORS.chipBg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   radioOuter: {
     width: 20,
@@ -379,14 +495,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1.5,
     borderColor: COLORS.cardBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.green },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.green,
+  },
 
   orderItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.card,
     borderRadius: 14,
     padding: 12,
@@ -399,14 +520,19 @@ const styles = StyleSheet.create({
     height: 34,
     borderRadius: 8,
     backgroundColor: COLORS.chipBg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden", // Ensure image fits within rounded corners
   },
-  orderPrice: { color: COLORS.text, fontSize: 13, fontWeight: '600' },
+  orderPrice: { color: COLORS.text, fontSize: 13, fontFamily: "PlusJakarta-SemiBold" },
 
-  billRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
-  billLabel: { color: COLORS.subtext, fontSize: 13 },
-  billValue: { color: COLORS.text, fontSize: 13 },
+  billRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+  },
+  billLabel: { color: COLORS.subtext, fontSize: 13, fontFamily: "PlusJakarta-Regular" },
+  billValue: { color: COLORS.text, fontSize: 13, fontFamily: "PlusJakarta-Regular" },
   divider: { height: 1, backgroundColor: COLORS.cardBorder, marginVertical: 6 },
 
   savingsBanner: {
@@ -417,22 +543,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.green,
   },
-  savingsText: { color: COLORS.green, fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  savingsText: {
+    color: COLORS.green,
+    fontSize: 13,
+    fontFamily: "PlusJakarta-SemiBold",
+    textAlign: "center",
+  },
 
-  etaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 14 },
-  etaDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.green, marginRight: 6 },
-  etaText: { color: COLORS.subtext, fontSize: 12 },
+  etaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 14,
+  },
+  etaDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.green,
+    marginRight: 6,
+  },
+  etaText: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
 
   footer: { padding: 16, backgroundColor: COLORS.bg },
   placeOrderBtn: {
     backgroundColor: COLORS.green,
     borderRadius: 16,
     padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  placeOrderTitle: { color: COLORS.bg, fontSize: 15, fontWeight: '700' },
-  placeOrderSubtitle: { color: 'rgba(11,13,12,0.7)', fontSize: 11, marginTop: 2 },
-  placeOrderRight: { flexDirection: 'row', alignItems: 'center' },
+  placeOrderTitle: { color: COLORS.bg, fontSize: 15, fontFamily: "PlusJakarta-Bold" },
+  placeOrderSubtitle: {
+    color: "rgba(11,13,12,0.7)",
+    fontSize: 11,
+    marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
+  },
+  placeOrderRight: { flexDirection: "row", alignItems: "center" },
 });

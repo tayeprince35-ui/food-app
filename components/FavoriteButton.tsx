@@ -33,10 +33,9 @@ export default function FavoriteButton({
 
 const styles = StyleSheet.create({
   button: {
-    width: 40,
-    height: 40,
+    width: 20,
+    height: 20,
     borderRadius: 20,
-    backgroundColor: "#181D19",
     alignItems: "center",
     justifyContent: "center",
   },
