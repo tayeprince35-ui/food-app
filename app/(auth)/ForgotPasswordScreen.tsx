@@ -1,102 +1,291 @@
-import { LucideMail } from 'lucide-react-native';
-import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'; // <--- Added Image here
+import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-const Forgotimage = require('./../../assets/icons/forgot.png');
+import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+
+const ForgotImage = require("./../../assets/icons/forgot.png");
+
+const SCREEN_BG = "#151515";
+const CARD_BG = "#151515";
+const BORDER = "#383838";
+const GREEN = "#238046";
+const MUTED = "#969696";
+const WHITE = "#F8F8F8";
 
 export default function ForgotPasswordScreen() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(false);
+
+  const handleSendCode = async () => {
+    if (loading) return;
+
+    if (!email.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Email required",
+        text2: "Please enter your email address.",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // TODO: wire up to your reset password flow
+      // const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
+      // if (error) throw error;
+
+      Toast.show({
+        type: "success",
+        text1: "Code sent",
+        text2: "Check your inbox for the confirmation code.",
+        visibilityTime: 1000,
+      });
+
+      // router.push("/(auth)/VerifyCodeScreen");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Please try again later.";
+
+      Toast.show({
+        type: "error",
+        text1: "Something went wrong",
+        text2: message,
+        visibilityTime: 1000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      
-      {/* 1. Title */}
-      <Text style={styles.title}>Forgot Password</Text>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      <StatusBar barStyle="light-content" backgroundColor={SCREEN_BG} />
 
-      <View style={styles.imageContainer}>
-        <Image source={Forgotimage} style={{ width: 150, height: 150 }} resizeMode="contain" />
-      </View>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* TOP BAR */}
+          <View style={styles.topBar}>
+            <Pressable
+              hitSlop={12}
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Feather name="chevron-left" size={27} color="#FFFFFF" />
+            </Pressable>
+          </View>
 
-      {/* 3. Description Text */}
-      <Text style={styles.description}>
-        Please enter your email to receive a confirmation code to set a new password
-      </Text>
+          {/* HEADING */}
+          <View style={styles.headingArea}>
+            <Image
+              source={ForgotImage}
+              style={styles.image}
+              contentFit="contain"
+              transition={100}
+            />
 
-      {/* 4. Email Input Field */}
-      <View style={styles.inputWrapper}>
-        {/* Simple Mail Icon component */}
-        <LucideMail/>
-        
-        <TextInput
-          placeholder="Enter your email"
-          placeholderTextColor="#888888"
-          style={styles.input}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
+            <Text style={styles.title}>Forgot Password</Text>
 
-      {/* 5. Send Code Button */}
-      <Pressable style={styles.button}>
-        <Text style={styles.buttonText}>Send Code</Text>
-      </Pressable>
+            <Text style={styles.subtitle}>
+              Enter your email and we'll send you a{"\n"}
+              confirmation code to reset your password.
+            </Text>
+          </View>
 
-    </View>
+          {/* FORM */}
+          <View style={styles.form}>
+            <View style={styles.fieldWrap}>
+              <Text style={styles.label}>Email address</Text>
+
+              <View style={[styles.inputShell, focused && styles.inputFocused]}>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="godfreyajayi25@gmail.com"
+                  placeholderTextColor="#777777"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!loading}
+                  style={styles.input}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                />
+              </View>
+            </View>
+
+            <Pressable
+              disabled={loading}
+              onPress={handleSendCode}
+              style={({ pressed }) => [
+                styles.sendButton,
+                loading && styles.sendButtonDisabled,
+                pressed && !loading && styles.pressed,
+              ]}
+            >
+              <Text style={styles.sendButtonText}>Send Code</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.homeIndicator} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
-// Basic styling to match the image exactly
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
-    backgroundColor: '#121212', // Very dark background
-    paddingHorizontal: 24,
-    paddingTop: 60,
   },
+
+  safeArea: {
+    flex: 1,
+    backgroundColor: SCREEN_BG,
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+    backgroundColor: CARD_BG,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 14,
+  },
+
+  topBar: {
+    height: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  backButton: {
+    width: 35,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  headingArea: {
+    alignItems: "center",
+    paddingTop: 30,
+  },
+
+  image: {
+    width: 220,
+    height: 220,
+    marginBottom: 20,
+  },
+
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 40,
+    color: WHITE,
+    fontSize: 23,
+    lineHeight: 29,
+    fontFamily: "PlusJakarta-Bold",
+    letterSpacing: -0.3,
   },
-  imageContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
+
+  subtitle: {
+    marginTop: 8,
+    color: MUTED,
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: "center",
+    fontFamily: "PlusJakarta-Regular",
   },
-  description: {
-    fontSize: 16,
-    color: '#D1D1D1', // Light gray text
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 40,
+
+  form: {
+    marginTop: 45,
   },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E1E1E', // Slightly lighter dark background
-    borderRadius: 30, // Rounded pill shape
+
+  fieldWrap: {
+    marginBottom: 20,
+  },
+
+  label: {
+    marginBottom: 6,
+    color: "#D1D1D1",
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: "PlusJakarta-Regular",
+  },
+
+  inputShell: {
+    height: 46,
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#333333',
-    paddingHorizontal: 16,
-    height: 55,
-    marginBottom: 16,
+    borderColor: BORDER,
+    borderRadius: 23,
+    backgroundColor: "#171717",
   },
+
+  inputFocused: {
+    borderColor: "#00BC4F",
+  },
+
   input: {
     flex: 1,
-    height: '100%',
-    color: '#FFFFFF',
-    fontSize: 16,
-    marginLeft: 10,
+    height: "100%",
+    color: "#EDEDED",
+    fontSize: 13,
+    paddingHorizontal: 15,
+    paddingTop: Platform.OS === "android" ? 0 : 1,
+    fontFamily: "PlusJakarta-Regular",
+    outlineStyle: "none" as any,
   },
-  button: {
-    backgroundColor: '#2E7D32', // Dark Green
-    height: 55,
-    borderRadius: 30, // Rounded pill shape
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
+
+  sendButton: {
+    height: 46,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 23,
+    backgroundColor: GREEN,
+    marginTop: 4,
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+
+  sendButtonDisabled: {
+    opacity: 0.6,
+  },
+
+  sendButtonText: {
+    color: "#F5F5F5",
+    fontSize: 14,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+
+  pressed: {
+    opacity: 0.82,
+  },
+
+  homeIndicator: {
+    width: 112,
+    height: 4,
+    alignSelf: "center",
+    marginTop: "auto",
+    marginBottom: 4,
+    borderRadius: 3,
+    backgroundColor: "#F5F5F5",
   },
 });

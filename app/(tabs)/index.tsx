@@ -1,4 +1,3 @@
-import { FLASH_DEALS } from "@/assets/data";
 import AddToCartButton from "@/components/AddToCartButton";
 import FavoriteButton from "@/components/FavoriteButton";
 import PopularNearAAUCard from "@/components/NearYouCard";
@@ -6,7 +5,6 @@ import OrderAgainCard from "@/components/OrderAgain";
 import PromoSliderr from "@/components/PromoSliderr";
 import { typography } from "@/constants/typography";
 import POPULAR_ITEMS, {
-  FOOD_ITEMS,
   Foods,
   RestaurantAndMeal,
   RESTAURANTS_AND_MEALS,
@@ -16,7 +14,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { FlatList, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import grocery from "../../assets/icons/basket.png";
 import chicken from "../../assets/icons/chicken.png";
@@ -201,39 +206,15 @@ function FlashDealsHeader() {
       <Text style={typography.bold} className="text-lg text-white">
         Flash Deals
       </Text>
-
-      <View className="flex-row items-center gap-1">
-        <View className="bg-[#1C1C1E] px-1.5 py-0.5 rounded">
-          <Text style={typography.bold} className="text-white text-xs">
-            02
-          </Text>
-        </View>
-
-        <Text style={typography.regular} className="text-white text-xs">
-          :
-        </Text>
-
-        <View className="bg-[#1C1C1E] px-1.5 py-0.5 rounded">
-          <Text style={typography.bold} className="text-white text-xs">
-            13
-          </Text>
-        </View>
-
-        <Text style={typography.regular} className="text-white text-xs">
-          :
-        </Text>
-
-        <View className="bg-[#1C1C1E] px-1.5 py-0.5 rounded">
-          <Text style={typography.bold} className="text-white text-xs">
-            11
-          </Text>
-        </View>
-      </View>
     </View>
   );
 }
 
 function FlashDealsList() {
+  const randomizedFoods = useMemo(() => {
+    return [...POPULAR_ITEMS].sort(() => Math.random() - 0.5);
+  }, []);
+
   return (
     <ScrollView
       horizontal
@@ -245,8 +226,19 @@ function FlashDealsList() {
       }}
       className="mb-4"
     >
-      {FLASH_DEALS.map((deal) => (
-        <View key={deal.id} className="w-36">
+      {randomizedFoods.slice(0, 10).map((deal) => (
+        <TouchableOpacity
+          key={deal.id}
+          className="w-36"
+          onPress={() =>
+            router.push({
+              pathname: "/food/[id]",
+              params: {
+                id: String(deal.id),
+              },
+            })
+          }
+        >
           <Image
             source={{ uri: deal.image }}
             style={{
@@ -270,7 +262,7 @@ function FlashDealsList() {
           <Text style={typography.bold} className="text-[#34C759] text-xs mt-1">
             ₦{deal.price.toLocaleString()}
           </Text>
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
@@ -281,6 +273,10 @@ function FlashDealsList() {
 /* ------------------------------------------------------------------ */
 
 function PopularNearAAUSection() {
+  const randomizedFoods = useMemo(() => {
+    return [...POPULAR_ITEMS].sort(() => Math.random() - 0.5);
+  }, []);
+
   return (
     <View className="bg-[#0D0F11] py-4">
       <View className="px-4 mb-3 flex-row justify-between items-center">
@@ -304,11 +300,18 @@ function PopularNearAAUSection() {
           paddingLeft: 16,
         }}
       >
-        {FOOD_ITEMS.map((item) => (
+        {randomizedFoods.slice(0, 10).map((item) => (
           <PopularNearAAUCard
             key={item.id}
             {...item}
-            onPress={() => console.log("Selected:", item.title)}
+            onPress={() =>
+              router.push({
+                params: {
+                  id: String(item.id),
+                },
+                pathname: "/food/[id]",
+              })
+            }
           />
         ))}
       </ScrollView>
@@ -589,7 +592,13 @@ export default function Home() {
                 <FlashDealsList />
               </>
             )}
-
+            <Text
+              style={typography.semiBold}
+              className="text-white text-lg ml-7  "
+              numberOfLines={1}
+            >
+              Restaurants Near you
+            </Text>
             {/* Only show this title for category mode */}
             {!isAll && (
               <View className="mt-6 px-5 flex-row justify-between items-center">

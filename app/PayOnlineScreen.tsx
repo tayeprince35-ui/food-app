@@ -1,6 +1,7 @@
 import GlassBackButton from "@/components/GlassBackButton";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard"; // Import Clipboard
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { LucideCheck, LucideLock } from "lucide-react-native";
 import { useEffect, useState } from "react";
@@ -39,11 +40,7 @@ const PayOnlineScreen = () => {
     await Clipboard.setStringAsync(text);
     setCopiedField(fieldName);
 
-    // Optional: Show an alert or toast
-    // Alert.alert("Copied!", `${fieldName} copied to clipboard.`);
-
-    // Reset the icon back to "copy" after 2 seconds
-    setTimeout(() => {
+   setTimeout(() => {
       setCopiedField(null);
     }, 2000);
   };
@@ -64,8 +61,12 @@ const PayOnlineScreen = () => {
         {/* Merchant Info Row */}
         <View style={styles.merchantRow}>
           <View style={styles.merchantInfo}>
-            <View style={styles.merchantIconBg}>
-              <Ionicons name="leaf" size={16} color="#fff" />
+            <View style={styles.merchantIconBg} className="p-4">
+              <Image
+                source={require("../assets/icons/logo.png")}
+                style={{ width: 23, height: 23 }}
+                contentFit="contain"
+              />
             </View>
             <Text style={styles.merchantName}>HeyBite</Text>
           </View>

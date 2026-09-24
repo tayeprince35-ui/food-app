@@ -43,7 +43,7 @@ export default function CheckoutScreen() {
   const [paymentMethod, setPaymentMethod] = useState<"online" | "wallet">(
     "online",
   );
-  
+
   // --- WIRED UP TO CART STORE ---
   const { cart, removeFromCart } = useCartStore();
   const total = useCartTotal();
@@ -180,7 +180,7 @@ export default function CheckoutScreen() {
             <Text style={styles.orderPrice}>
               x{item.quantity} {naira(item.price)}
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={{ marginLeft: 8 }}
               onPress={() => removeFromCart(item.id)}
             >
@@ -229,7 +229,12 @@ export default function CheckoutScreen() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.placeOrderBtn}
-          onPress={() => router.push("/payment")}
+          onPress={() =>
+            router.push({
+              pathname: "/payment",
+              params: { amount: totalPayment.toString() },
+            })
+          }
         >
           <View>
             <Text style={styles.placeOrderTitle}>Place Order</Text>
@@ -369,7 +374,11 @@ function BillRow({
       <Text
         style={[
           styles.billLabel,
-          bold && { color: COLORS.text, fontFamily: "PlusJakarta-Bold", fontSize: 16 },
+          bold && {
+            color: COLORS.text,
+            fontFamily: "PlusJakarta-Bold",
+            fontSize: 16,
+          },
         ]}
       >
         {label}
@@ -396,8 +405,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 20,
   },
-  headerTitle: { color: COLORS.text, fontSize: 16, fontFamily: "PlusJakarta-SemiBold" },
-  headerStep: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
+  headerTitle: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+  headerStep: {
+    color: COLORS.subtext,
+    fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
+  },
   progressRow: { flexDirection: "row", alignItems: "center", marginBottom: 24 },
   progressLine: {
     flex: 1,
@@ -428,10 +445,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  sectionTitle: { color: COLORS.text, fontSize: 15, fontFamily: "PlusJakarta-SemiBold" },
-  sectionAction: { color: COLORS.green, fontSize: 13, fontFamily: "PlusJakarta-Regular" },
-  charCount: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
-  itemCount: { color: COLORS.green, fontSize: 13, fontFamily: "PlusJakarta-Regular" },
+  sectionTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+  sectionAction: {
+    color: COLORS.green,
+    fontSize: 13,
+    fontFamily: "PlusJakarta-Regular",
+  },
+  charCount: {
+    color: COLORS.subtext,
+    fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
+  },
+  itemCount: {
+    color: COLORS.green,
+    fontSize: 13,
+    fontFamily: "PlusJakarta-Regular",
+  },
 
   card: {
     backgroundColor: COLORS.card,
@@ -442,8 +475,17 @@ const styles = StyleSheet.create({
   },
   cardSelected: { borderColor: COLORS.green, backgroundColor: COLORS.greenDim },
   row: { flexDirection: "row", alignItems: "center" },
-  cardTitle: { color: COLORS.text, fontSize: 14, fontFamily: "PlusJakarta-SemiBold" },
-  cardSubtitle: { color: COLORS.subtext, fontSize: 12, marginTop: 2, fontFamily: "PlusJakarta-Regular" },
+  cardTitle: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+  cardSubtitle: {
+    color: COLORS.subtext,
+    fontSize: 12,
+    marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
+  },
 
   addAddressBtn: {
     flexDirection: "row",
@@ -456,7 +498,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginTop: 10,
   },
-  addAddressText: { color: COLORS.text, fontSize: 14, marginLeft: 6, fontFamily: "PlusJakarta-Regular" },
+  addAddressText: {
+    color: COLORS.text,
+    fontSize: 14,
+    marginLeft: 6,
+    fontFamily: "PlusJakarta-Regular",
+  },
 
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 },
   chip: {
@@ -468,7 +515,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
   },
   chipSelected: { backgroundColor: COLORS.greenDim, borderColor: COLORS.green },
-  chipText: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
+  chipText: {
+    color: COLORS.subtext,
+    fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
+  },
   chipTextSelected: { color: COLORS.green, fontFamily: "PlusJakarta-SemiBold" },
 
   noteBox: {
@@ -479,7 +530,12 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: 70,
   },
-  noteInput: { color: COLORS.text, fontSize: 13, textAlignVertical: "top", fontFamily: "PlusJakarta-Regular" },
+  noteInput: {
+    color: COLORS.text,
+    fontSize: 13,
+    textAlignVertical: "top",
+    fontFamily: "PlusJakarta-Regular",
+  },
 
   paymentIconWrap: {
     width: 32,
@@ -524,15 +580,27 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden", // Ensure image fits within rounded corners
   },
-  orderPrice: { color: COLORS.text, fontSize: 13, fontFamily: "PlusJakarta-SemiBold" },
+  orderPrice: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
 
   billRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 6,
   },
-  billLabel: { color: COLORS.subtext, fontSize: 13, fontFamily: "PlusJakarta-Regular" },
-  billValue: { color: COLORS.text, fontSize: 13, fontFamily: "PlusJakarta-Regular" },
+  billLabel: {
+    color: COLORS.subtext,
+    fontSize: 13,
+    fontFamily: "PlusJakarta-Regular",
+  },
+  billValue: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontFamily: "PlusJakarta-Regular",
+  },
   divider: { height: 1, backgroundColor: COLORS.cardBorder, marginVertical: 6 },
 
   savingsBanner: {
@@ -563,7 +631,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.green,
     marginRight: 6,
   },
-  etaText: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
+  etaText: {
+    color: COLORS.subtext,
+    fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
+  },
 
   footer: { padding: 16, backgroundColor: COLORS.bg },
   placeOrderBtn: {
@@ -574,7 +646,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  placeOrderTitle: { color: COLORS.bg, fontSize: 15, fontFamily: "PlusJakarta-Bold" },
+  placeOrderTitle: {
+    color: COLORS.bg,
+    fontSize: 15,
+    fontFamily: "PlusJakarta-Bold",
+  },
   placeOrderSubtitle: {
     color: "rgba(11,13,12,0.7)",
     fontSize: 11,

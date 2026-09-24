@@ -56,7 +56,7 @@ const ProfileScreen = () => {
   const handleLogout = () => {
     setShowLogoutAlert(true);
   };
-  if ( isLoggingOut || !userData)
+  if (isLoggingOut || !userData)
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#4ADE80" />
@@ -137,7 +137,10 @@ const ProfileScreen = () => {
             Available balance • Tap to manage
           </Text>
 
-          <TouchableOpacity style={styles.addCashButton}>
+          <TouchableOpacity
+            style={styles.addCashButton}
+            onPress={() => router.push("/AddCashScreen")}
+          >
             <Ionicons name="add" size={18} color="#FFF" />
 
             <Text style={styles.addCashText}>Add Cash</Text>
@@ -172,6 +175,7 @@ const ProfileScreen = () => {
             iconColor="#DAA520"
             title="Payment methods"
             subtitle="Cash on delivery, wallet, bank"
+            href="/payment"
           />
         </View>
 
@@ -189,14 +193,6 @@ const ProfileScreen = () => {
 
           <View style={styles.divider} />
 
-          <SwitchItem
-            icon="moon"
-            iconColor="#A9A9A9"
-            title="Dark mode"
-            subtitle="Always on for HeyBite"
-            value={true}
-          />
-
           <View style={styles.divider} />
 
           <SwitchItem
@@ -208,14 +204,6 @@ const ProfileScreen = () => {
           />
 
           <View style={styles.divider} />
-
-          <MenuItem
-            icon="language"
-            iconColor="#2E8B57"
-            title="Language"
-            subtitle="App display language"
-            rightText="English"
-          />
         </View>
 
         {/* Support Section */}
@@ -228,6 +216,7 @@ const ProfileScreen = () => {
             title="Help & Support"
             subtitle="Chat, FAQs, Raise a complaint"
             rightBadge="New"
+            href="/GetHelpScreen"
           />
 
           <View style={styles.divider} />

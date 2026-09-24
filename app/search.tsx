@@ -92,7 +92,11 @@ export default function Search(): React.JSX.Element {
           </View>
 
           {query.trim() === "" ? (
-            <SearchEmptyState />
+            <SearchEmptyState
+              onTrendingPress={(text) => {
+                setQuery(text);
+              }}
+            />
           ) : (
             <View>
               {/* Filter Pills */}

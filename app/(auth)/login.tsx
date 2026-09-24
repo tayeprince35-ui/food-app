@@ -1,3 +1,4 @@
+import { useAuth } from "@/lib/AuthContext";
 import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image } from "expo-image";
@@ -24,8 +25,7 @@ import { z } from "zod";
 import loginSchema from "../../lib/schemas/loginSchema";
 import { supabase } from "../../lib/supabase";
 
-const Logo = require("../../assets/icons/logo2.png");
-
+const Logo = require("../../assets/icons/logo.png");
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const SCREEN_BG = "#151515";
@@ -38,7 +38,9 @@ const WHITE = "#F8F8F8";
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
+  const { continueAsGuest } = useAuth();
   const {
     control,
     handleSubmit,
@@ -57,11 +59,10 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { data: authData, error } =
-        await supabase.auth.signInWithPassword({
-          email: formData.email.trim().toLowerCase(),
-          password: formData.password,
-        });
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      });
 
       if (error) {
         Toast.show({
@@ -132,10 +133,7 @@ export default function Login() {
               <Feather name="chevron-left" size={27} color="#FFFFFF" />
             </Pressable>
 
-            <Pressable
-              style={styles.guestButton}
-              onPress={() => router.replace("/(tabs)")}
-            >
+            <Pressable style={styles.guestButton} onPress={continueAsGuest}>
               <Text style={styles.guestText}>Sign in as guest</Text>
             </Pressable>
           </View>
@@ -168,12 +166,12 @@ export default function Login() {
                     style={[
                       styles.inputShell,
                       errors.email && styles.inputShellError,
+                      focusedInput === "email" && styles.inputFocused,
                     ]}
                   >
                     <TextInput
                       value={value}
                       onChangeText={onChange}
-                      onBlur={onBlur}
                       placeholder="godfreyajayi25@gmail.com"
                       placeholderTextColor="#777777"
                       keyboardType="email-address"
@@ -181,6 +179,11 @@ export default function Login() {
                       autoCorrect={false}
                       editable={!loading}
                       style={styles.input}
+                      onFocus={() => setFocusedInput("email")}
+                      onBlur={() => {
+                        setFocusedInput(null);
+                        onBlur?.();
+                      }}
                     />
                   </View>
                 )}
@@ -203,12 +206,12 @@ export default function Login() {
                     style={[
                       styles.inputShell,
                       errors.password && styles.inputShellError,
+                      focusedInput === "password" && styles.inputFocused,
                     ]}
                   >
                     <TextInput
                       value={value}
                       onChangeText={onChange}
-                      onBlur={onBlur}
                       placeholder="••••••••••••••••"
                       placeholderTextColor="#777777"
                       secureTextEntry={!showPassword}
@@ -216,6 +219,11 @@ export default function Login() {
                       autoCorrect={false}
                       editable={!loading}
                       style={styles.input}
+                      onFocus={() => setFocusedInput("password")}
+                      onBlur={() => {
+                        setFocusedInput(null);
+                        onBlur?.();
+                      }}
                     />
 
                     <Pressable
@@ -347,8 +355,8 @@ const styles = StyleSheet.create({
 
   guestText: {
     color: "#D3D3D3",
-    fontSize: 11,       // was 9
-    fontWeight: "500",
+    fontSize: 11,
+    fontFamily: "PlusJakarta-Medium",
   },
 
   headingArea: {
@@ -357,25 +365,26 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 34,          // was 30
+    width: 34,
     height: 34,
     marginBottom: 12,
   },
 
   title: {
     color: WHITE,
-    fontSize: 23,       // was 20
+    fontSize: 23,
     lineHeight: 29,
-    fontWeight: "700",
+    fontFamily: "PlusJakarta-Bold",
     letterSpacing: -0.3,
   },
 
   subtitle: {
     marginTop: 5,
     color: MUTED,
-    fontSize: 12,       // was 10
+    fontSize: 12,
     lineHeight: 17,
     textAlign: "center",
+    fontFamily: "PlusJakarta-Regular",
   },
 
   form: {
@@ -389,12 +398,13 @@ const styles = StyleSheet.create({
   label: {
     marginBottom: 6,
     color: "#D1D1D1",
-    fontSize: 12,       // was 10
+    fontSize: 12,
     lineHeight: 16,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   inputShell: {
-    height: 46,         // was 42
+    height: 46,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -407,17 +417,23 @@ const styles = StyleSheet.create({
     borderColor: "#EF5350",
   },
 
+  inputFocused: {
+    borderColor: "#00BC4F",
+  },
+
   input: {
     flex: 1,
     height: "100%",
     color: "#EDEDED",
-    fontSize: 13,       // was 10
+    fontSize: 13,
     paddingHorizontal: 15,
     paddingTop: Platform.OS === "android" ? 0 : 1,
+    fontFamily: "PlusJakarta-Regular",
+    outlineStyle: "none" as any,
   },
 
   inputIcon: {
-    width: 46,          // was 42
+    width: 46,
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
@@ -427,7 +443,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginLeft: 12,
     color: "#EF5350",
-    fontSize: 11,       // was 9
+    fontSize: 11,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   forgotPasswordButton: {
@@ -438,12 +455,12 @@ const styles = StyleSheet.create({
 
   forgotPasswordText: {
     color: "#2A9B53",
-    fontSize: 12,       // was 10
-    fontWeight: "500",
+    fontSize: 12,
+    fontFamily: "PlusJakarta-Medium",
   },
 
   signInButton: {
-    height: 46,         // was 42
+    height: 46,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 23,
@@ -456,8 +473,8 @@ const styles = StyleSheet.create({
 
   signInText: {
     color: "#F5F5F5",
-    fontSize: 14,       // was 11
-    fontWeight: "600",
+    fontSize: 14,
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   pressed: {
@@ -480,11 +497,12 @@ const styles = StyleSheet.create({
 
   orText: {
     color: "#C5C5C5",
-    fontSize: 11,       // was 9
+    fontSize: 11,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   socialButton: {
-    height: 46,         // was 42
+    height: 46,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -496,8 +514,8 @@ const styles = StyleSheet.create({
 
   socialText: {
     color: "#FFFFFF",
-    fontSize: 13,       // was 11
-    fontWeight: "500",
+    fontSize: 13,
+    fontFamily: "PlusJakarta-Medium",
   },
 
   signUpRow: {
@@ -509,13 +527,14 @@ const styles = StyleSheet.create({
 
   noAccountText: {
     color: "#B8B8B8",
-    fontSize: 12,       // was 10
+    fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   signUpText: {
     color: "#2A9B53",
-    fontSize: 12,       // was 10
-    fontWeight: "600",
+    fontSize: 12,
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   homeIndicator: {

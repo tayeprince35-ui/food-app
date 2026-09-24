@@ -13,6 +13,11 @@ type AuthContextType = {
   session: Session | null;
   isLoading: boolean;
   isLoggingOut: boolean;
+
+  // Guest mode
+  isGuest: boolean;
+  continueAsGuest: () => void;
+
   logout: () => Promise<void>;
 };
 
@@ -23,6 +28,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Guest mode
+  const [isGuest, setIsGuest] = useState(false);
+
   useEffect(() => {
     let mounted = true;
 
@@ -53,11 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  const continueAsGuest = () => {
+    setIsGuest(true);
+  };
+
   const logout = async () => {
     setIsLoggingOut(true);
 
     try {
       await supabase.auth.signOut();
+
+      // Leave guest mode too
+      setIsGuest(false);
     } finally {
       setIsLoggingOut(false);
     }
@@ -70,6 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         isLoading,
         isLoggingOut,
+
+        // Guest mode
+        isGuest,
+        continueAsGuest,
+
         logout,
       }}
     >

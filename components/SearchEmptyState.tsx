@@ -1,31 +1,28 @@
-import { categories, trendingItems, recentSearches } from "@/assets/data";
+import { categories, recentSearches, trendingItems } from "@/assets/data";
 import CategoryCard from "@/components/BrowseCategories";
 import RecentItem, { SectionTitle } from "@/components/RecentItem";
 import TrendingChip from "@/components/TrendingSearches";
-import React from "react";
 import { StyleSheet, View } from "react-native";
+type SearchEmptyStateProps = {
+  onTrendingPress: (title: string) => void;
+};
 
-export default function SearchEmptyState() {
+export default function SearchEmptyState({
+  onTrendingPress,
+}: SearchEmptyStateProps) {
   return (
     <>
       {/* Recent */}
-      <SectionTitle icon="◷">
-        RECENT
-      </SectionTitle>
+      <SectionTitle icon="◷">RECENT</SectionTitle>
 
       <View style={styles.recentList}>
         {recentSearches.map((item) => (
-          <RecentItem
-            key={item.title}
-            item={item}
-          />
+          <RecentItem key={item.title} item={item} />
         ))}
       </View>
 
       {/* Trending */}
-      <SectionTitle icon="↗">
-        TRENDING NOW
-      </SectionTitle>
+      <SectionTitle icon="↗">TRENDING NOW</SectionTitle>
 
       <View style={styles.trendingList}>
         {trendingItems.map(([emoji, title]) => (
@@ -33,21 +30,17 @@ export default function SearchEmptyState() {
             key={title}
             emoji={emoji}
             title={title}
+            onPress={() => onTrendingPress(title)}
           />
         ))}
       </View>
 
       {/* Categories */}
-      <SectionTitle icon="▦">
-        BROWSE CATEGORIES
-      </SectionTitle>
+      <SectionTitle icon="▦">BROWSE CATEGORIES</SectionTitle>
 
       <View style={styles.categoryGrid}>
         {categories.map((item) => (
-          <CategoryCard
-            key={item.title}
-            item={item}
-          />
+          <CategoryCard key={item.title} item={item} />
         ))}
       </View>
     </>

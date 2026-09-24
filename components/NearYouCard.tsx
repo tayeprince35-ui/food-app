@@ -2,17 +2,21 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const PopularNearAAUCard = ({
   image,
-  title,
+  name,
   rating,
   deliveryTime,
-  startingPrice,
+  price,
+  restaurant,
+  category,
   onPress,
 }: {
   image: string;
-  title: string;
+  name: string; // was: title
   rating: number;
   deliveryTime: string;
-  startingPrice: number;
+  price: number; // was: startingPrice
+  restaurant: string;
+  category: string;
   onPress: () => void;
 }) => {
   return (
@@ -32,7 +36,7 @@ const PopularNearAAUCard = ({
       <View style={styles.contentContainer}>
         {/* Restaurant/Food Title */}
         <Text style={styles.titleText} numberOfLines={1}>
-          {title}
+          {name}
         </Text>
 
         {/* Rating & Delivery Time Row */}
@@ -45,7 +49,7 @@ const PopularNearAAUCard = ({
 
         {/* Starting Price Tag */}
         <Text style={styles.priceText}>
-          From ₦{startingPrice.toLocaleString()}
+          From ₦{price.toLocaleString()}
         </Text>
       </View>
     </TouchableOpacity>

@@ -29,7 +29,7 @@ import CountryPicker, {
 import signupSchema from "../../lib/schemas/signupSchema";
 import { supabase } from "../../lib/supabase";
 
-const Logo = require("../../assets/icons/logo2.png");
+const Logo = require("../../assets/icons/logo.png");
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
@@ -60,7 +60,7 @@ function Field({
   value?: string;
   onChangeText?: (text: string) => void;
   onBlur?: () => void;
-setFocus: (focused: boolean) => void;
+  setFocus: (focused: boolean) => void;
   secureTextEntry?: boolean;
   rightIcon?: React.ReactNode;
   focused?: boolean;
@@ -69,16 +69,21 @@ setFocus: (focused: boolean) => void;
   error?: string;
   keyboardType?: "default" | "email-address" | "phone-pad";
   autoCapitalize?: "none" | "words" | "sentences" | "characters";
-})  {
+}) {
   return (
     <View style={[styles.fieldWrap, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
 
-      <View style={[styles.inputShell, error && styles.inputShellError,  focused && styles.inputFocused]}>
+      <View
+        style={[
+          styles.inputShell,
+          error && styles.inputShellError,
+          focused && styles.inputFocused,
+        ]}
+      >
         <TextInput
           value={value}
           onChangeText={onChangeText}
-       
           placeholder={placeholder}
           placeholderTextColor="#777777"
           secureTextEntry={secureTextEntry}
@@ -86,12 +91,12 @@ setFocus: (focused: boolean) => void;
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
           style={styles.input}
-        onFocus={() => setFocus?.(true)}
-onBlur={() => {
-  setFocus?.(false);
-  onBlur?.();
-}}
-           />
+          onFocus={() => setFocus?.(true)}
+          onBlur={() => {
+            setFocus?.(false);
+            onBlur?.();
+          }}
+        />
 
         {rightIcon ? (
           <Pressable
@@ -112,7 +117,7 @@ onBlur={() => {
 export default function SignUpScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     name: "Nigeria",
     code: "NG",
@@ -159,8 +164,7 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
             phone_number: formData.phoneNumber.trim(),
 
-            referral_code:
-              formData.referralCode?.trim() || null,
+            referral_code: formData.referralCode?.trim() || null,
           },
         },
       });
@@ -179,8 +183,7 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
         Toast.show({
           type: "success",
           text1: "Check your inbox",
-          text2:
-            "We sent you a confirmation link to verify your email.",
+          text2: "We sent you a confirmation link to verify your email.",
         });
 
         router.replace("/(auth)/login");
@@ -197,9 +200,7 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
       router.replace("/(tabs)");
     } catch (error: unknown) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Please try again later.";
+        error instanceof Error ? error.message : "Please try again later.";
 
       Toast.show({
         type: "error",
@@ -212,20 +213,12 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
   };
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={["top", "bottom"]}
-    >
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={SCREEN_BG}
-      />
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      <StatusBar barStyle="light-content" backgroundColor={SCREEN_BG} />
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={
-          Platform.OS === "ios" ? "padding" : undefined
-        }
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -240,20 +233,14 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Feather
-                name="chevron-left"
-                size={27}
-                color="#FFFFFF"
-              />
+              <Feather name="chevron-left" size={27} color="#FFFFFF" />
             </Pressable>
 
             <Pressable
               style={styles.guestButton}
               onPress={() => router.replace("/(tabs)")}
             >
-              <Text style={styles.guestText}>
-                Sign in as guest
-              </Text>
+              <Text style={styles.guestText}>Sign in as guest</Text>
             </Pressable>
           </View>
 
@@ -267,9 +254,7 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
               transition={150}
             />
 
-            <Text style={styles.title}>
-              Create an account
-            </Text>
+            <Text style={styles.title}>Create an account</Text>
 
             <Text style={styles.subtitle}>
               Sign up in minutes. Enter your details below to{"\n"}
@@ -284,54 +269,42 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
               <Controller
                 control={control}
                 name="firstName"
-                render={({
-                  field: {
-                    onChange,
-                    onBlur,
-                    value,
-                  },
-                }) => (
-             <Field
-  label="First name"
-  placeholder="e.g Ajayi"
-  value={value}
-  onChangeText={onChange}
-  onBlur={onBlur}
-  autoCapitalize="words"
-  error={errors.firstName?.message}
-  style={styles.halfField}
-  focused={focusedInput === "firstName"}
-  setFocus={(focused) =>
-    setFocusedInput(focused ? "firstName" : null)
-  }
-/>
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Field
+                    label="First name"
+                    placeholder="e.g Ajayi"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    autoCapitalize="words"
+                    error={errors.firstName?.message}
+                    style={styles.halfField}
+                    focused={focusedInput === "firstName"}
+                    setFocus={(focused) =>
+                      setFocusedInput(focused ? "firstName" : null)
+                    }
+                  />
                 )}
               />
 
               <Controller
                 control={control}
                 name="lastName"
-                render={({
-                  field: {
-                    onChange,
-                    onBlur,
-                    value,
-                  },
-                }) => (
-                 <Field
-  label="Last name"
-  placeholder="e.g Ajayi"
-  value={value}
-  onChangeText={onChange}
-  onBlur={onBlur}
-  autoCapitalize="words"
-  error={errors.lastName?.message}
-  style={styles.halfField}
-  focused={focusedInput === "lastName"}
-  setFocus={(focused) =>
-    setFocusedInput(focused ? "lastName" : null)
-  }
-/>
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Field
+                    label="Last name"
+                    placeholder="e.g Ajayi"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    autoCapitalize="words"
+                    error={errors.lastName?.message}
+                    style={styles.halfField}
+                    focused={focusedInput === "lastName"}
+                    setFocus={(focused) =>
+                      setFocusedInput(focused ? "lastName" : null)
+                    }
+                  />
                 )}
               />
             </View>
@@ -341,26 +314,20 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
             <Controller
               control={control}
               name="email"
-              render={({
-                field: {
-                  onChange,
-                  onBlur,
-                  value,
-                },
-              }) => (
-              <Field
-  label="Email address"
-  placeholder="godfreyajayi25@gmail.com"
-  value={value}
-  onChangeText={onChange}
-  onBlur={onBlur}
-  keyboardType="email-address"
-  error={errors.email?.message}
-  focused={focusedInput === "email"}
-  setFocus={(focused) =>
-    setFocusedInput(focused ? "email" : null)
-  }
-/>
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Field
+                  label="Email address"
+                  placeholder="godfreyajayi25@gmail.com"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  keyboardType="email-address"
+                  error={errors.email?.message}
+                  focused={focusedInput === "email"}
+                  setFocus={(focused) =>
+                    setFocusedInput(focused ? "email" : null)
+                  }
+                />
               )}
             />
 
@@ -369,9 +336,7 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
             <View style={styles.phoneLabels}>
               <Text style={styles.label}>Country</Text>
 
-              <Text style={styles.label}>
-                Phone number
-              </Text>
+              <Text style={styles.label}>Phone number</Text>
             </View>
 
             <View style={styles.phoneRow}>
@@ -391,23 +356,14 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
               <Controller
                 control={control}
                 name="phoneNumber"
-                render={({
-                  field: {
-                    onChange,
-                    onBlur,
-                    value,
-                  },
-                }) => (
+                render={({ field: { onChange, onBlur, value } }) => (
                   <View
                     style={[
                       styles.phoneInputShell,
-                      errors.phoneNumber &&
-                        styles.inputShellError,
+                      errors.phoneNumber && styles.inputShellError,
                     ]}
                   >
-                    <Text
-                      style={styles.dialCode}
-                    >
+                    <Text style={styles.dialCode}>
                       {selectedCountry.dialCode}
                     </Text>
 
@@ -426,27 +382,13 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
             </View>
 
             {errors.country?.message ? (
-              <Text
-                style={[
-                  styles.errorText,
-                  {
-                    marginTop: -6,
-                  },
-                ]}
-              >
+              <Text style={[styles.errorText, { marginTop: -6 }]}>
                 {errors.country.message}
               </Text>
             ) : null}
 
             {errors.phoneNumber?.message ? (
-              <Text
-                style={[
-                  styles.errorText,
-                  {
-                    marginTop: -6,
-                  },
-                ]}
-              >
+              <Text style={[styles.errorText, { marginTop: -6 }]}>
                 {errors.phoneNumber.message}
               </Text>
             ) : null}
@@ -456,36 +398,28 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
             <Controller
               control={control}
               name="password"
-              render={({
-                field: {
-                  onChange,
-                  onBlur,
-                  value,
-                },
-              }) => (
-            <Field
-  label="Password"
-  placeholder="••••••••••••••••"
-  value={value}
-  onChangeText={onChange}
-  onBlur={onBlur}
-  secureTextEntry={!showPassword}
-  error={errors.password?.message}
-  focused={focusedInput === "password"}
-  setFocus={(focused) =>
-    setFocusedInput(focused ? "password" : null)
-  }
-  rightIcon={
-    <Feather
-      name={showPassword ? "eye" : "eye-off"}
-      size={18}
-      color="#8B8B8B"
-    />
-  }
-  onRightIconPress={() =>
-    setShowPassword((value) => !value)
-  }
-/>
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Field
+                  label="Password"
+                  placeholder="••••••••••••••••"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  secureTextEntry={!showPassword}
+                  error={errors.password?.message}
+                  focused={focusedInput === "password"}
+                  setFocus={(focused) =>
+                    setFocusedInput(focused ? "password" : null)
+                  }
+                  rightIcon={
+                    <Feather
+                      name={showPassword ? "eye" : "eye-off"}
+                      size={18}
+                      color="#8B8B8B"
+                    />
+                  }
+                  onRightIconPress={() => setShowPassword((value) => !value)}
+                />
               )}
             />
 
@@ -494,25 +428,19 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
             <Controller
               control={control}
               name="referralCode"
-              render={({
-                field: {
-                  onChange,
-                  onBlur,
-                  value,
-                },
-              }) => (
-               <Field
-  label="Referral code (optional)"
-  placeholder="Enter a referral code"
-  value={value}
-  onChangeText={onChange}
-  onBlur={onBlur}
-  error={errors.referralCode?.message}
-  focused={focusedInput === "referralCode"}
-  setFocus={(focused) =>
-    setFocusedInput(focused ? "referralCode" : null)
-  }
-/>
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Field
+                  label="Referral code (optional)"
+                  placeholder="Enter a referral code"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.referralCode?.message}
+                  focused={focusedInput === "referralCode"}
+                  setFocus={(focused) =>
+                    setFocusedInput(focused ? "referralCode" : null)
+                  }
+                />
               )}
             />
 
@@ -524,33 +452,18 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
               style={styles.continueWrap}
             >
               <LinearGradient
-                colors={[
-                  "#2A9051",
-                  "#1C733C",
-                ]}
-                start={{
-                  x: 0,
-                  y: 0,
-                }}
-                end={{
-                  x: 1,
-                  y: 0,
-                }}
+                colors={["#2A9051", "#1C733C"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={[
                   styles.continueButton,
-                  loading &&
-                    styles.continueButtonDisabled,
+                  loading && styles.continueButtonDisabled,
                 ]}
               >
                 {loading ? (
-                  <ActivityIndicator
-                    color="#FFFFFF"
-                    size="small"
-                  />
+                  <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <Text style={styles.continueText}>
-                    Continue
-                  </Text>
+                  <Text style={styles.continueText}>Continue</Text>
                 )}
               </LinearGradient>
             </Pressable>
@@ -560,9 +473,7 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
             <View style={styles.dividerRow}>
               <View style={styles.divider} />
 
-              <Text style={styles.orText}>
-                Or Sign up with
-              </Text>
+              <Text style={styles.orText}>Or Sign up with</Text>
 
               <View style={styles.divider} />
             </View>
@@ -576,20 +487,13 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
                 Toast.show({
                   type: "info",
                   text1: "Google sign up",
-                  text2:
-                    "Social login will be available soon.",
+                  text2: "Social login will be available soon.",
                 })
               }
             >
-              <FontAwesome6
-                name="google"
-                size={17}
-                color="#4285F4"
-              />
+              <FontAwesome6 name="google" size={17} color="#4285F4" />
 
-              <Text style={styles.socialText}>
-                Google
-              </Text>
+              <Text style={styles.socialText}>Google</Text>
             </Pressable>
 
             {/* APPLE */}
@@ -601,20 +505,13 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
                 Toast.show({
                   type: "info",
                   text1: "Apple sign up",
-                  text2:
-                    "Social login will be available soon.",
+                  text2: "Social login will be available soon.",
                 })
               }
             >
-              <Ionicons
-                name="logo-apple"
-                size={20}
-                color="#FFFFFF"
-              />
+              <Ionicons name="logo-apple" size={20} color="#FFFFFF" />
 
-              <Text style={styles.socialText}>
-                Apple
-              </Text>
+              <Text style={styles.socialText}>Apple</Text>
             </Pressable>
           </View>
 
@@ -622,13 +519,8 @@ const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
           <Text style={styles.terms}>
             By signing up, You agree to HeyBite’s{" "}
-            <Text style={styles.link}>
-              Terms and Conditions
-            </Text>{" "}
-            including{" "}
-            <Text style={styles.link}>
-              Privacy policy
-            </Text>
+            <Text style={styles.link}>Terms and Conditions</Text> including{" "}
+            <Text style={styles.link}>Privacy policy</Text>
           </Text>
 
           <View style={styles.homeIndicator} />
@@ -682,7 +574,7 @@ const styles = StyleSheet.create({
   guestText: {
     fontSize: 11,
     color: "#D3D3D3",
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
 
   headingArea: {
@@ -700,7 +592,7 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 22,
     lineHeight: 28,
-    fontWeight: "700",
+    fontFamily: "PlusJakarta-Bold",
     letterSpacing: -0.3,
   },
 
@@ -710,6 +602,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     textAlign: "center",
     marginTop: 5,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   form: {
@@ -733,7 +626,7 @@ const styles = StyleSheet.create({
     color: "#D1D1D1",
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: "400",
+    fontFamily: "PlusJakarta-Regular",
     marginBottom: 6,
   },
 
@@ -757,9 +650,9 @@ const styles = StyleSheet.create({
     color: "#EDEDED",
     fontSize: 13,
     paddingHorizontal: 15,
-    paddingTop:
-      Platform.OS === "android" ? 0 : 1,
-       outlineStyle: 'none' as any,
+    paddingTop: Platform.OS === "android" ? 0 : 1,
+    fontFamily: "PlusJakarta-Regular",
+    outlineStyle: "none" as any,
   },
 
   inputIcon: {
@@ -774,6 +667,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     color: "#EF5350",
     fontSize: 11,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   phoneLabels: {
@@ -789,13 +683,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
 
-  /*
-   * The CountryPicker component is normally a
-   * full-width picker.
-   *
-   * This wrapper gives it the space needed
-   * beside the phone number.
-   */
   countryPickerWrapper: {
     width: 67,
     height: 50,
@@ -819,7 +706,7 @@ const styles = StyleSheet.create({
     color: "#D9D9D9",
     fontSize: 13,
     paddingLeft: 14,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
 
   phoneInput: {
@@ -828,6 +715,7 @@ const styles = StyleSheet.create({
     color: "#EDEDED",
     fontSize: 13,
     paddingHorizontal: 8,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   continueWrap: {
@@ -848,7 +736,7 @@ const styles = StyleSheet.create({
   continueText: {
     color: "#F5F5F5",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   dividerRow: {
@@ -868,6 +756,7 @@ const styles = StyleSheet.create({
   orText: {
     color: "#C5C5C5",
     fontSize: 11,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   socialButton: {
@@ -884,7 +773,7 @@ const styles = StyleSheet.create({
   socialText: {
     color: "#FFFFFF",
     fontSize: 13,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
 
   terms: {
@@ -894,10 +783,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 26,
     paddingHorizontal: 22,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   link: {
     color: "#27A456",
+    fontFamily: "PlusJakarta-SemiBold",
   },
 
   homeIndicator: {

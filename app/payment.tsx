@@ -11,13 +11,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 const COLORS = {
   bg: "#0B0D0C", // Dark background
   card: "#141715", // Slightly lighter card background
   cardBorder: "#232823", // Dark border
   green: "#22C55E", // Primary green
-  greenDim: "rgba(34,197,94,0.08)", 
+  greenDim: "rgba(34,197,94,0.08)",
   text: "#FFFFFF",
   subtext: "#8E938F",
   radioBorder: "#4A4F4B",
@@ -57,6 +57,7 @@ const PAYMENT_METHODS = [
 
 const PayOnlineScreen = () => {
   const [selectedMethod, setSelectedMethod] = useState("bank"); // Default to Bank Transfer
+  const { amount } = useLocalSearchParams<{ amount: string }>();
 
   // Find the currently selected method object to display its name at the bottom
   const activeMethodData = PAYMENT_METHODS.find((m) => m.id === selectedMethod);
@@ -79,7 +80,7 @@ const PayOnlineScreen = () => {
         <View style={styles.totalCard}>
           <View style={styles.totalCardLeft}>
             <Text style={styles.totalLabel}>TOTAL AMOUNT</Text>
-            <Text style={styles.totalAmount}>₦4,300</Text>
+            <Text style={styles.totalAmount}>₦{amount}</Text>
           </View>
           <View style={styles.totalCardRight}>
             <Text style={styles.orderNumber}>Order #HB-20243</Text>
@@ -159,7 +160,7 @@ const PayOnlineScreen = () => {
           </View>
 
           <View style={styles.payButtonRight}>
-            <Text style={styles.payButtonAmount}>(Pay ₦4,300)</Text>
+            <Text style={styles.payButtonAmount}>(Pay ₦{amount})</Text>
             <Ionicons
               name="arrow-forward"
               size={20}
