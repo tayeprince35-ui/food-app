@@ -3,6 +3,7 @@ import RestaurantDetailModal from "@/components/RestaurantDetailModal";
 import SearchEmptyState from "@/components/SearchEmptyState";
 import SearchFilters from "@/components/SearchFilters";
 import SearchFoodGrid from "@/components/SearchFoodGrid";
+import SearchNoResults from "@/components/SearchNoResults";
 import SearchRestaurantList from "@/components/SearchRestaurantList";
 import SearchResultsHeader from "@/components/SearchResultsHeader";
 import SearchTabs from "@/components/SearchTabs";
@@ -37,14 +38,11 @@ export default function Search(): React.JSX.Element {
     useState<RestaurantAndMeal | null>(null);
 
   useEffect(() => {
-    console.log("Query changed:", query);
     const handler = setTimeout(() => {
-      console.log("Debounced fired:", query);
       setDebouncedQuery(query);
     }, 500);
 
     return () => {
-      console.log("Cleanup for:", query);
       clearTimeout(handler);
     };
   }, [query]);
@@ -91,7 +89,7 @@ export default function Search(): React.JSX.Element {
             </TouchableOpacity>
           </View>
 
-          {query.trim() === "" ? (
+          {debouncedQuery.trim() === "" ? (
             <SearchEmptyState
               onTrendingPress={(text) => {
                 setQuery(text);
@@ -110,7 +108,9 @@ export default function Search(): React.JSX.Element {
 
               {/* Tabs */}
               <SearchTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
+              {filteredFoods.length === 0 && (
+                <SearchNoResults query={debouncedQuery} />
+              )}
               {activeTab === "dishes" && (
                 <SearchFoodGrid
                   foods={filteredFoods}

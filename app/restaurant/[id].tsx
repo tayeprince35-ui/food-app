@@ -1,4 +1,3 @@
-import AddToCartButton from "@/components/AddToCartButton";
 import FavoriteButton from "@/components/FavoriteButton";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image, ImageBackground } from "expo-image";
@@ -14,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import AddToCartButton from "@/components/AddToCartButton";
 import GlassBackButton from "@/components/GlassBackButton";
 import POPULAR_ITEMS, { RESTAURANTS_AND_MEALS } from "@/data/food";
 import { useCartStore } from "@/store/cartStore";
@@ -30,10 +30,12 @@ const RestaurantScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [activeCategory, setActiveCategory] = useState("1");
-  const [quantity, setQuantity] = useState(1);
 
-  // const addToCart = useCartStore((state) => state.addToCart);
   const cart = useCartStore((state) => state.cart);
+  const addToCart = useCartStore((state) => state.addToCart);
+  const increaseQuantity = useCartStore((state) => state.increaseQuantity);
+  const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
 
   const Dish = RESTAURANTS_AND_MEALS.find((item) => item.id === Number(id));
 
@@ -65,11 +67,6 @@ const RestaurantScreen = () => {
       </SafeAreaView>
     );
   }
-
-  const cartCount = cart.reduce(
-    (total, item) => total + Number(item.quantity ?? 1),
-    0,
-  );
 
   const cartTotal = cart.reduce(
     (total, item) => total + Number(item.price) * Number(item.quantity ?? 1),
@@ -222,42 +219,52 @@ const RestaurantScreen = () => {
             🍚 More from {Dish.restaurant}
           </Text>
 
-          {restaurantDishes.map((dish) => (
-            <TouchableOpacity key={dish.id} style={styles.dishCard}>
-              <View style={styles.dishImageWrapper}>
-                <Image
-                  source={{ uri: dish.image }}
-                  style={styles.dishImage}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  transition={200}
-                />
-              </View>
+          {restaurantDishes.map((dish) => {
+            return (
+              <TouchableOpacity
+                key={dish.id}
+                style={styles.dishCard}
+                onPress={() =>
+                  router.push({
+                    pathname: "/food/[id]",
+                    params: {
+                      id: dish.id.toString(),
+                    },
+                  })
+                }
+              >
+                <View style={styles.dishImageWrapper}>
+                  <Image
+                    source={{ uri: dish.image }}
+                    style={styles.dishImage}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={100}
+                  />
+                </View>
 
-              <View style={styles.dishInfo}>
-                <Text style={styles.dishName}>{dish.name}</Text>
+                <View style={styles.dishInfo}>
+                  <Text style={styles.dishName}>{dish.name}</Text>
 
-                <Text style={styles.dishDescription} numberOfLines={2}>
-                  Delicious {dish.name.toLowerCase()} from {dish.restaurant}.
-                </Text>
+                  <Text style={styles.dishDescription} numberOfLines={2}>
+                    Delicious {dish.name.toLowerCase()} from {dish.restaurant}.
+                  </Text>
 
-                <Text style={styles.dishPrice}>
-                  {formatNaira(Number(dish.price))}
-                </Text>
-              </View>
+                  <Text style={styles.dishPrice}>
+                    {formatNaira(Number(dish.price))}
+                  </Text>
+                </View>
 
-              <AddToCartButton
-                food={dish}
-                quantity={quantity}
-               
-              />
-            </TouchableOpacity>
-          ))}
+                <View style={styles.actionContainer}>
+                  <AddToCartButton food={dish} />
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
 
-      {/* Floating Cart */}
-      {cartCount > 0 && (
+      {cart.length > 0 && (
         <View style={styles.floatingCartWrapper}>
           <TouchableOpacity
             style={styles.floatingCartButton}
@@ -266,7 +273,7 @@ const RestaurantScreen = () => {
           >
             <View style={styles.cartLeft}>
               <View style={styles.cartCountBadge}>
-                <Text style={styles.cartCountText}>{cartCount}</Text>
+                <Text style={styles.cartCountText}>{cart.length}</Text>
               </View>
 
               <Text style={styles.cartButtonText}>View cart</Text>
@@ -400,6 +407,23 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakarta-Bold",
   },
 
+  actionContainer: {
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    paddingTop: 10,
+  },
+
+  addButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(0, 166, 81, 0.15)",
+    borderWidth: 1,
+    borderColor: "#00A651",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   promoBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -470,91 +494,11 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakarta-Bold",
   },
 
-  selectedFoodSection: {
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
-
   sectionTitle: {
     color: "#FFF",
     fontSize: 18,
     fontFamily: "PlusJakarta-Bold",
     marginBottom: 16,
-  },
-
-  selectedFoodCard: {
-    backgroundColor: "#1C1C1E",
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-
-  selectedFoodImage: {
-    width: "100%",
-    height: 220,
-  },
-
-  selectedFoodInfo: {
-    padding: 16,
-  },
-
-  selectedFoodName: {
-    color: "#FFF",
-    fontSize: 20,
-    fontFamily: "PlusJakarta-Bold",
-    marginBottom: 8,
-  },
-
-  selectedFoodDescription: {
-    color: "#999",
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 12,
-    fontFamily: "PlusJakarta-Regular",
-  },
-
-  selectedFoodPrice: {
-    color: "#34C759",
-    fontSize: 18,
-    fontFamily: "PlusJakarta-Bold",
-  },
-
-  quantityRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 14,
-  },
-
-  quantityLabel: {
-    color: "#FFF",
-    fontSize: 16,
-    fontFamily: "PlusJakarta-SemiBold",
-  },
-
-  quantityControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1C1C1E",
-    borderRadius: 10,
-    padding: 4,
-  },
-
-  quantityButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: "#34C759",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  quantityText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontFamily: "PlusJakarta-Bold",
-    minWidth: 40,
-    textAlign: "center",
   },
 
   menuSection: {

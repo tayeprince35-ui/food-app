@@ -77,19 +77,21 @@ const PayOnlineScreen = () => {
         </View>
 
         {/* Total Amount Card */}
-        <View style={styles.totalCard}>
-          <View style={styles.totalCardLeft}>
-            <Text style={styles.totalLabel}>TOTAL AMOUNT</Text>
-            <Text style={styles.totalAmount}>₦{amount}</Text>
-          </View>
-          <View style={styles.totalCardRight}>
-            <Text style={styles.orderNumber}>Order #HB-20243</Text>
-            <View style={styles.itemBadge}>
-              <Text style={styles.itemBadgeText}>3 items</Text>
+
+        {amount && (
+          <View style={styles.totalCard}>
+            <View style={styles.totalCardLeft}>
+              <Text style={styles.totalLabel}>TOTAL AMOUNT</Text>
+              <Text style={styles.totalAmount}>₦{amount}</Text>
+            </View>
+            <View style={styles.totalCardRight}>
+              <Text style={styles.orderNumber}>Order #HB-20243</Text>
+              <View style={styles.itemBadge}>
+                <Text style={styles.itemBadgeText}>items</Text>
+              </View>
             </View>
           </View>
-        </View>
-
+        )}
         {/* Section Title */}
         <Text style={styles.sectionTitle}>HOW WOULD YOU LIKE TO PAY?</Text>
 
@@ -159,15 +161,17 @@ const PayOnlineScreen = () => {
             </Text>
           </View>
 
-          <View style={styles.payButtonRight}>
-            <Text style={styles.payButtonAmount}>(Pay ₦{amount})</Text>
-            <Ionicons
-              name="arrow-forward"
-              size={20}
-              color={COLORS.text}
-              style={{ marginLeft: 8 }}
-            />
-          </View>
+          {amount && (
+            <View style={styles.payButtonRight}>
+              <Text style={styles.payButtonAmount}>(Pay ₦{amount})</Text>
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color={COLORS.text}
+                style={{ marginLeft: 8 }}
+              />
+            </View>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -27,6 +27,7 @@ type MenuItemProps = {
   rightText?: string;
   rightBadge?: string;
   href?: Href;
+  disabled?: boolean;
 };
 
 type SwitchItemProps = {
@@ -35,17 +36,32 @@ type SwitchItemProps = {
   title: string;
   subtitle: string;
   value: boolean;
+  disabled?: boolean;
 };
 
 const ProfileScreen = () => {
-  const { user: userData, logout, isLoading, isLoggingOut } = useAuth();
+  const {
+    user: userData,
+    logout,
+    isLoading,
+    isLoggingOut,
+    isGuest,
+  } = useAuth();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
-  const username =
-    userData?.user_metadata?.first_name +
-    ` ` +
-    userData?.user_metadata?.last_name;
-  console.log(userData);
+  const username = isGuest
+    ? "Guest"
+    : userData?.user_metadata?.first_name +
+      ` ` +
+      userData?.user_metadata?.last_name;
+
+  const userSubtitle = isGuest
+    ? "Sign in to unlock full features"
+    : userData?.user_metadata?.email;
+
+  const avatarLetter = isGuest
+    ? "G"
+    : userData?.user_metadata?.first_name?.charAt(0).toUpperCase() || "?";
 
   // Hardcoded values for UI only
   const user = {
@@ -53,10 +69,16 @@ const ProfileScreen = () => {
     email: "godfreyajayi25@gmail.com",
     balance: "4,300.00",
   };
+
   const handleLogout = () => {
+    if (isGuest) {
+      router.push("/(auth)/login");
+      return;
+    }
     setShowLogoutAlert(true);
   };
-  if (isLoggingOut || !userData)
+
+  if (isLoggingOut || (!userData && !isGuest))
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#4ADE80" />
@@ -94,35 +116,31 @@ const ProfileScreen = () => {
         {/* User Info Section */}
         <View style={styles.userInfoSection}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {userData?.user_metadata?.first_name?.charAt(0).toUpperCase() ||
-                "?"}
-            </Text>
+            <Text style={styles.avatarText}>{avatarLetter}</Text>
           </View>
 
           <View style={styles.userDetails}>
             <Text style={styles.userName}>{username}</Text>
 
-            <Text style={styles.userEmail}>
-              {userData?.user_metadata?.email}
-            </Text>
+            <Text style={styles.userEmail}>{userSubtitle}</Text>
 
-            <View style={styles.badgeRow}>
-              <View style={[styles.badge, styles.badgeGold]}>
-                <Ionicons name="star" size={12} color="#FFD700" />
+            {!isGuest && (
+              <View style={styles.badgeRow}>
+                <View style={[styles.badge, styles.badgeGold]}>
+                  <Ionicons name="star" size={12} color="#FFD700" />
+                  <Text style={styles.badgeTextGold}>Gold Member</Text>
+                </View>
 
-                <Text style={styles.badgeTextGold}>Gold Member</Text>
+                <View style={[styles.badge, styles.badgeGreen]}>
+                  <Text style={styles.badgeTextGreen}>Ekpoma</Text>
+                </View>
               </View>
-
-              <View style={[styles.badge, styles.badgeGreen]}>
-                <Text style={styles.badgeTextGreen}>Ekpoma</Text>
-              </View>
-            </View>
+            )}
           </View>
         </View>
 
         {/* Wallet Card */}
-        <View style={styles.walletCard}>
+        <View style={[styles.walletCard, isGuest && styles.disabledCard]}>
           <View style={styles.walletHeader}>
             <View style={styles.walletIconContainer}>
               <MaterialCommunityIcons name="wallet" size={20} color="#1E4D2B" />
@@ -131,18 +149,22 @@ const ProfileScreen = () => {
             <Text style={styles.walletTitle}>HEYBITE WALLET</Text>
           </View>
 
-          <Text style={styles.walletBalance}>₦{user.balance}</Text>
+          <Text style={styles.walletBalance}>
+            {isGuest ? "₦0.00" : `₦${user.balance}`}
+          </Text>
 
           <Text style={styles.walletSubtext}>
-            Available balance • Tap to manage
+            {isGuest
+              ? "Sign in to use your wallet"
+              : "Available balance • Tap to manage"}
           </Text>
 
           <TouchableOpacity
-            style={styles.addCashButton}
-            onPress={() => router.push("/AddCashScreen")}
+            style={[styles.addCashButton, isGuest && styles.disabledButton]}
+            onPress={() => !isGuest && router.push("/AddCashScreen")}
+            disabled={isGuest}
           >
             <Ionicons name="add" size={18} color="#FFF" />
-
             <Text style={styles.addCashText}>Add Cash</Text>
           </TouchableOpacity>
         </View>
@@ -155,8 +177,9 @@ const ProfileScreen = () => {
             icon="person"
             iconColor="#8A2BE2"
             title="Personal info"
-            subtitle="Name, phone"
+            subtitle={isGuest ? "Sign in required" : "Name, phone"}
             href="/PersonalInfoScreen"
+            disabled={isGuest}
           />
 
           <View style={styles.divider} />
@@ -165,7 +188,8 @@ const ProfileScreen = () => {
             icon="location"
             iconColor="#20B2AA"
             title="Saved address"
-            subtitle="Home"
+            subtitle={isGuest ? "Sign in required" : "Home"}
+            disabled={isGuest}
           />
 
           <View style={styles.divider} />
@@ -174,8 +198,11 @@ const ProfileScreen = () => {
             icon="card"
             iconColor="#DAA520"
             title="Payment methods"
-            subtitle="Cash on delivery, wallet, bank"
+            subtitle={
+              isGuest ? "Sign in required" : "Cash on delivery, wallet, bank"
+            }
             href="/payment"
+            disabled={isGuest}
           />
         </View>
 
@@ -188,10 +215,9 @@ const ProfileScreen = () => {
             iconColor="#FF4500"
             title="Push notification"
             subtitle="Order, updates, promos"
-            value={true}
+            value={!isGuest}
+            disabled={isGuest}
           />
-
-          <View style={styles.divider} />
 
           <View style={styles.divider} />
 
@@ -201,12 +227,13 @@ const ProfileScreen = () => {
             title="SMS alerts"
             subtitle="Order & delivery text"
             value={false}
+            disabled={isGuest}
           />
 
           <View style={styles.divider} />
         </View>
 
-        {/* Support Section */}
+        {/* Support Section — always available */}
         <Text style={styles.sectionHeader}>SUPPORT</Text>
 
         <View style={styles.sectionContainer}>
@@ -231,15 +258,20 @@ const ProfileScreen = () => {
           />
         </View>
 
-        {/* Log Out */}
+        {/* Log Out / Log In */}
         <TouchableOpacity
           style={styles.logoutButton}
           className="mb-20"
           onPress={handleLogout}
         >
-          <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
-
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Ionicons
+            name={isGuest ? "log-in-outline" : "log-out-outline"}
+            size={20}
+            color="#FF3B30"
+          />
+          <Text style={styles.logoutText}>
+            {isGuest ? "Log In" : "Log Out"}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -255,25 +287,31 @@ const MenuItem = ({
   rightText,
   rightBadge,
   href,
+  disabled,
 }: MenuItemProps) => (
   <TouchableOpacity
-    style={styles.menuItem}
-    onPress={() => href && router.push(href)}
+    style={[styles.menuItem, disabled && styles.disabledRow]}
+    onPress={() => {
+      if (disabled) {
+        router.push("/(auth)/login");
+        return;
+      }
+      href && router.push(href);
+    }}
   >
     <View
       style={[
         styles.menuIconContainer,
-        {
-          backgroundColor: "rgba(255,255,255,0.05)",
-        },
+        { backgroundColor: "rgba(255,255,255,0.05)" },
       ]}
     >
-      <Ionicons name={icon} size={18} color={iconColor} />
+      <Ionicons name={icon} size={18} color={disabled ? "#555" : iconColor} />
     </View>
 
     <View style={styles.menuContent}>
-      <Text style={styles.menuTitle}>{title}</Text>
-
+      <Text style={[styles.menuTitle, disabled && styles.disabledText]}>
+        {title}
+      </Text>
       <Text style={styles.menuSubtitle}>{subtitle}</Text>
     </View>
 
@@ -283,9 +321,7 @@ const MenuItem = ({
           <Text style={styles.newBadgeText}>{rightBadge}</Text>
         </View>
       )}
-
       {rightText && <Text style={styles.rightText}>{rightText}</Text>}
-
       <Ionicons name="chevron-forward" size={16} color="#666" />
     </View>
   </TouchableOpacity>
@@ -298,37 +334,36 @@ const SwitchItem = ({
   title,
   subtitle,
   value,
+  disabled,
 }: SwitchItemProps) => (
-  <View style={styles.menuItem}>
+  <View style={[styles.menuItem, disabled && styles.disabledRow]}>
     <View
       style={[
         styles.menuIconContainer,
-        {
-          backgroundColor: "rgba(255,255,255,0.05)",
-        },
+        { backgroundColor: "rgba(255,255,255,0.05)" },
       ]}
     >
-      <Ionicons name={icon} size={18} color={iconColor} />
+      <Ionicons name={icon} size={18} color={disabled ? "#555" : iconColor} />
     </View>
 
     <View style={styles.menuContent}>
-      <Text style={styles.menuTitle}>{title}</Text>
-
+      <Text style={[styles.menuTitle, disabled && styles.disabledText]}>
+        {title}
+      </Text>
       <Text style={styles.menuSubtitle}>{subtitle}</Text>
     </View>
 
     <Switch
-      trackColor={{
-        false: "#3E3E3E",
-        true: "#34C759",
-      }}
+      trackColor={{ false: "#3E3E3E", true: "#34C759" }}
       thumbColor="#FFF"
       ios_backgroundColor="#3E3E3E"
       onValueChange={() => {}}
       value={value}
+      disabled={disabled}
     />
   </View>
 );
+
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
@@ -337,29 +372,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
-
-  backButton: {
-    padding: 5,
-  },
-
+  backButton: { padding: 5 },
   headerTitle: {
     color: "#FFF",
     fontSize: 18,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
   userInfoSection: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 10,
     marginBottom: 25,
   },
-
   avatar: {
     width: 60,
     height: 60,
@@ -369,36 +394,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 15,
   },
-
-  avatarText: {
-    color: "#FFF",
-    fontSize: 28,
-    fontFamily: "PlusJakarta-Bold",
-  },
-
-  userDetails: {
-    flex: 1,
-  },
-
-  userName: {
-    color: "#FFF",
-    fontSize: 20,
-    fontFamily: "PlusJakarta-Bold",
-  },
-
+  avatarText: { color: "#FFF", fontSize: 28, fontFamily: "PlusJakarta-Bold" },
+  userDetails: { flex: 1 },
+  userName: { color: "#FFF", fontSize: 20, fontFamily: "PlusJakarta-Bold" },
   userEmail: {
     color: "#A0A0A0",
     fontSize: 14,
     marginTop: 2,
     fontFamily: "PlusJakarta-Regular",
   },
-
-  badgeRow: {
-    flexDirection: "row",
-    marginTop: 8,
-    gap: 8,
-  },
-
+  badgeRow: { flexDirection: "row", marginTop: 8, gap: 8 },
   badge: {
     flexDirection: "row",
     alignItems: "center",
@@ -407,71 +412,57 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 4,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-  centered: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "#121212" },
+  centered: { justifyContent: "center", alignItems: "center" },
   badgeGold: {
     backgroundColor: "rgba(218, 165, 32, 0.2)",
     borderWidth: 1,
     borderColor: "rgba(218, 165, 32, 0.5)",
   },
-
   badgeTextGold: {
     color: "#FFD700",
     fontSize: 10,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
   badgeGreen: {
     backgroundColor: "rgba(46, 139, 87, 0.2)",
     borderWidth: 1,
     borderColor: "rgba(46, 139, 87, 0.5)",
   },
-
   badgeTextGreen: {
     color: "#2E8B57",
     fontSize: 10,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
   walletCard: {
     backgroundColor: "#1E4D2B",
     borderRadius: 16,
     padding: 20,
     marginBottom: 30,
   },
-
+  disabledCard: { opacity: 0.5 },
   walletHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
   },
-
   walletIconContainer: {
     backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 4,
     marginRight: 8,
   },
-
   walletTitle: {
     color: "#A0D8B0",
     fontSize: 12,
     letterSpacing: 1,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
   walletBalance: {
     color: "#FFF",
     fontSize: 28,
     fontFamily: "PlusJakarta-Bold",
   },
-
   walletSubtext: {
     color: "#A0D8B0",
     fontSize: 12,
@@ -479,7 +470,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontFamily: "PlusJakarta-Regular",
   },
-
   addCashButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -490,13 +480,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     gap: 4,
   },
-
+  disabledButton: { backgroundColor: "#3A3A3A" },
   addCashText: {
     color: "#FFF",
     fontSize: 14,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
   sectionHeader: {
     color: "#666",
     fontSize: 12,
@@ -504,27 +493,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
   sectionContainer: {
     backgroundColor: "#1C1C1E",
     borderRadius: 16,
     marginBottom: 25,
     overflow: "hidden",
   },
-
-  divider: {
-    height: 1,
-    backgroundColor: "#2C2C2E",
-    marginLeft: 60,
-  },
-
+  divider: { height: 1, backgroundColor: "#2C2C2E", marginLeft: 60 },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 16,
   },
-
+  disabledRow: { opacity: 0.45 },
+  disabledText: { color: "#999" },
   menuIconContainer: {
     width: 32,
     height: 32,
@@ -533,49 +516,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 12,
   },
-
-  menuContent: {
-    flex: 1,
-  },
-
-  menuTitle: {
-    color: "#FFF",
-    fontSize: 15,
-    fontFamily: "PlusJakarta-Medium",
-  },
-
+  menuContent: { flex: 1 },
+  menuTitle: { color: "#FFF", fontSize: 15, fontFamily: "PlusJakarta-Medium" },
   menuSubtitle: {
     color: "#888",
     fontSize: 12,
     marginTop: 2,
     fontFamily: "PlusJakarta-Regular",
   },
-
-  menuRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-
-  rightText: {
-    color: "#888",
-    fontSize: 13,
-    fontFamily: "PlusJakarta-Regular",
-  },
-
+  menuRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  rightText: { color: "#888", fontSize: 13, fontFamily: "PlusJakarta-Regular" },
   newBadge: {
     backgroundColor: "rgba(220, 20, 60, 0.2)",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
-
   newBadgeText: {
     color: "#FF3B30",
     fontSize: 10,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -586,7 +547,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     gap: 8,
   },
-
   logoutText: {
     color: "#FF3B30",
     fontSize: 16,

@@ -89,17 +89,18 @@ function InitialLayout() {
   });
 
   useEffect(() => {
-  if (isLoading) return;
+    if (isLoading) return;
 
-  const inAuthGroup = segments[0] === "(auth)";
+    const inAuthGroup = segments[0] === "(auth)";
 
-  if ((session || isGuest) && inAuthGroup) {
-    router.replace("/(tabs)");
-  } else if (!session && !isGuest && !inAuthGroup) {
-    router.replace("/(auth)/login");
-  }
-}, [session, isGuest, isLoading, segments]);
-
+    if (session && inAuthGroup) {
+      router.replace("/(tabs)");
+    } else if (isGuest && inAuthGroup) {
+      router.replace("/DeliveryAddressScreen");
+    } else if (!session && !isGuest && !inAuthGroup) {
+      router.replace("/(auth)/login");
+    }
+  }, [session, isGuest, isLoading, segments]);
   if (isLoading || (!fontsLoaded && !fontError)) {
     return <LoadingScreen />;
   }

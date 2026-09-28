@@ -1,181 +1,268 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as Location from "expo-location";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-import GlassBackButton from "@/components/GlassBackButton";
-const DeliveryAddressScreen = () => {
+export default function ChooseDeliveryAddress() {
+  const [address, setAddress] = useState("");
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [searchingAddress, setSearchingAddress] = useState(false);
+
+  // Use phone's current location
+  const useCurrentLocation = async () => {
+    try {
+      setLoadingLocation(true);
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission denied",
+          "Enable location access to use your current location.",
+        );
+        return;
+      }
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const { latitude, longitude } = position.coords;
+
+      const results = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
+
+      let formattedAddress = "";
+
+      if (results.length > 0) {
+        const place = results[0];
+
+        formattedAddress = [
+          place.street,
+          place.city,
+          place.region,
+          place.country,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        setAddress(formattedAddress);
+      }
+
+      router.push({
+        pathname: "/map",
+        params: {
+          latitude: latitude.toString(),
+          longitude: longitude.toString(),
+          address: formattedAddress,
+        },
+      });
+    } catch (error) {
+      console.error("Location error:", error);
+
+      Alert.alert(
+        "Error",
+        "Something went wrong while fetching your location.",
+      );
+    } finally {
+      setLoadingLocation(false);
+    }
+  };
+
+  // Search for an address typed by the user
+  const searchAddress = async () => {
+    if (!address.trim()) {
+      Alert.alert("Enter an address", "Please type an address first.");
+      return;
+    }
+
+    try {
+      setSearchingAddress(true);
+      Keyboard.dismiss();
+
+      const results = await Location.geocodeAsync(address.trim());
+
+      if (results.length === 0) {
+        Alert.alert(
+          "Address not found",
+          "We couldn't find that address. Try adding more details.",
+        );
+        return;
+      }
+
+      const { latitude, longitude } = results[0];
+
+      router.push({
+        pathname: "/map",
+        params: {
+          latitude: latitude.toString(),
+          longitude: longitude.toString(),
+          address: address.trim(),
+        },
+      });
+    } catch (error) {
+      console.error("Address search error:", error);
+
+      Alert.alert(
+        "Search error",
+        "Something went wrong while searching for the address.",
+      );
+    } finally {
+      setSearchingAddress(false);
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
-
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <GlassBackButton />
-        <Text style={styles.headerTitle}>Delivery address</Text>
-        <View style={{ width: 40 }} /> {/* Spacer to balance title */}
+        <Text style={styles.title}>Choose delivery address</Text>
+
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="close" size={22} color="#fff" />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Section Title & Clear Button */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Choose delivery address</Text>
-          <TouchableOpacity style={styles.clearButton}>
-            <Ionicons name="close" size={18} color="#aaa" />
+      {/* Address Input */}
+      <View style={styles.inputContainer}>
+        <Ionicons name="location-outline" size={20} color="#7B8588" />
+
+        <TextInput
+          placeholder="Enter new address"
+          placeholderTextColor="#7B8588"
+          style={styles.input}
+          value={address}
+          onChangeText={setAddress}
+          onSubmitEditing={searchAddress}
+          returnKeyType="search"
+        />
+
+        {/* Search button */}
+        {address.trim().length > 0 && (
+          <TouchableOpacity onPress={searchAddress} disabled={searchingAddress}>
+            {searchingAddress ? (
+              <ActivityIndicator size="small" color="#00BC4F" />
+            ) : (
+              <Ionicons name="search" size={20} color="#00BC4F" />
+            )}
           </TouchableOpacity>
-        </View>
+        )}
+      </View>
 
-        {/* Search Input */}
-        <View style={styles.inputContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#fff"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter new address"
-            placeholderTextColor="#a0a0a0"
-          />
-        </View>
+      {/* Current Location */}
+      <TouchableOpacity
+        style={styles.locationButton}
+        onPress={useCurrentLocation}
+        disabled={loadingLocation}
+      >
+        {loadingLocation ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Ionicons name="navigate" size={16} color="#fff" />
+        )}
 
-        {/* Current Location Option */}
-        <TouchableOpacity style={styles.optionRow}>
-          <Ionicons
-            name="navigate"
-            size={18}
-            color="#4ade80"
-            style={styles.iconSpacing}
-          />
-          <Text style={styles.optionText}>Use your current location</Text>
-        </TouchableOpacity>
+        <Text style={styles.locationText}>
+          {loadingLocation ? "Locating..." : "Use your current location"}
+        </Text>
+      </TouchableOpacity>
 
-        {/* Saved Address Item */}
-        <TouchableOpacity style={styles.addressItem}>
-          <Ionicons
-            name="location-sharp"
-            size={18}
-            color="#4ade80"
-            style={styles.iconSpacing}
-          />
-          <View style={styles.addressDetails}>
-            <Text style={styles.addressText}>
-              2 akanade close, Yemetu St, Ibadan, 200286, Oyo, Nigeria
-            </Text>
-            <Text style={styles.cityText}>Ibadan Oyo</Text>
-          </View>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+      {/* Illustration */}
+      <Image
+        source={require("./../assets/icons/location.png")}
+        style={styles.image}
+        resizeMode="contain"
+      />
+
+      {/* Description */}
+      <Text style={styles.description}>
+        Share your location to explore nearby options.
+      </Text>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0f0f0f", // Very dark background
+    backgroundColor: "#111312",
+    paddingHorizontal: 20,
+    paddingTop: 24,
   },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#333",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerTitle: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    color: "#ffffff",
+
+  title: {
+    color: "#fff",
     fontSize: 16,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Bold",
   },
-  clearButton: {
-    backgroundColor: "#333",
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   inputContainer: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: "#343938",
+    borderRadius: 28,
+    marginTop: 20,
+    paddingHorizontal: 15,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1a2e1a", // Dark green tint
-    borderRadius: 30, // Fully rounded pill shape
-    borderWidth: 1,
-    borderColor: "#4ade80", // Bright green border
-    paddingHorizontal: 15,
-    height: 55,
-    marginBottom: 30,
   },
-  searchIcon: {
-    marginRight: 10,
-  },
+
   input: {
     flex: 1,
-    color: "#ffffff",
-    fontSize: 16,
+    color: "#fff",
+    fontSize: 14,
+    marginLeft: 10,
+    fontFamily: "PlusJakarta-Regular",
   },
-  optionRow: {
+
+  locationButton: {
+    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 25,
+    backgroundColor: "#00BC4F",
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginTop: 16,
   },
-  iconSpacing: {
-    marginRight: 12,
-  },
-  optionText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  addressItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  addressDetails: {
-    flex: 1,
-  },
-  addressText: {
-    color: "#e0e0e0",
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 5,
-  },
-  cityText: {
-    color: "#666666", // Dimmed text for secondary info
+
+  locationText: {
+    color: "#fff",
     fontSize: 13,
+    fontFamily: "PlusJakarta-SemiBold",
+    marginLeft: 6,
+  },
+
+  image: {
+    width: 270,
+    height: 270,
+    alignSelf: "center",
+    marginTop: 65,
+  },
+
+  description: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 5,
+    fontFamily: "PlusJakarta-Regular",
   },
 });
-
-export default DeliveryAddressScreen;

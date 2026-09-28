@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -52,7 +53,18 @@ export default function Login() {
       password: "",
     },
   });
+  const handleGoogleSignIn = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "heybite://auth/callback",
+      },
+    });
 
+    if (error) {
+      console.log("Google sign-in error:", error.message);
+    }
+  };
   const handleLogin = async (formData: LoginFormData) => {
     if (loading) return;
 
@@ -125,13 +137,7 @@ export default function Login() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.topBar}>
-            <Pressable
-              hitSlop={12}
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Feather name="chevron-left" size={27} color="#FFFFFF" />
-            </Pressable>
+            <Text></Text>
 
             <Pressable style={styles.guestButton} onPress={continueAsGuest}>
               <Text style={styles.guestText}>Sign in as guest</Text>
@@ -280,7 +286,7 @@ export default function Login() {
             <Pressable
               disabled={loading}
               style={styles.socialButton}
-              onPress={() => showComingSoon("Google")}
+              onPress={handleGoogleSignIn}
             >
               <FontAwesome6 name="google" size={17} color="#4285F4" />
               <Text style={styles.socialText}>Google</Text>

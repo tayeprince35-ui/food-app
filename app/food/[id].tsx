@@ -1,7 +1,9 @@
 import AddToCartButton from "@/components/AddToCartButton";
 import FavoriteButton from "@/components/FavoriteButton";
+import QuantitySelector from "@/components/quantitySelector";
 import { typography } from "@/constants/typography";
 import POPULAR_ITEMS, { Foods } from "@/data/food";
+import { useCartStore } from "@/store/cartStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -16,6 +18,17 @@ export default function FoodDetails() {
   const food: Foods | undefined = POPULAR_ITEMS.find(
     (item) => String(item.id) === String(foodId),
   );
+
+  // ✅ Cart state and actions
+  const cart = useCartStore((state) => state.cart);
+  const addToCart = useCartStore((state) => state.addToCart);
+  const increaseQuantity = useCartStore((state) => state.increaseQuantity);
+  const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
+
+  // ✅ Check if this item is already in cart
+  const cartItem = cart.find((item) => String(item.id) === String(foodId));
+  const itemQuantity = cartItem?.quantity ?? 0;
 
   /* -------------------------------------------------------------- */
   /* FOOD NOT FOUND                                                  */
@@ -218,7 +231,7 @@ export default function FoodDetails() {
               style={typography.regular}
               className="text-[#A0A0A0] text-sm leading-6 mt-3"
             >
-              `Enjoy this delicious ${food.name}$
+              Enjoy this delicious {food.name}
               {food.restaurant ? ` from ${food.restaurant}` : ""}. Freshly
               prepared and packed with great taste.
             </Text>
@@ -263,11 +276,33 @@ export default function FoodDetails() {
           </View>
 
           {/* ------------------------------------------------------ */}
-          {/* ADD TO CART                                              */}
+          {/* ADD TO CART / QUANTITY SELECTOR                          */}
           {/* ------------------------------------------------------ */}
 
           <View className="mt-6">
-            <AddToCartButton food={food} />
+            {itemQuantity > 0 ? (
+              <QuantitySelector
+                quantity={itemQuantity}
+                onIncrease={() => increaseQuantity(food.id)}
+                onDecrease={() => {
+                  if (itemQuantity === 1) {
+                    removeFromCart(food.id);
+                  } else {
+                    decreaseQuantity(food.id);
+                  }
+                }}
+              />
+            ) : (
+              <>
+                <AddToCartButton food={food} />
+                <Text
+                  style={typography.bold}
+                  className="text-white text-base ml-2"
+                >
+                  Add to Cart
+                </Text>
+              </>
+            )}
           </View>
         </View>
       </ScrollView>
