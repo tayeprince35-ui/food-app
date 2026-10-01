@@ -1,3 +1,4 @@
+import GlassBackButton from "@/components/GlassBackButton";
 import {
   FontAwesome5,
   Ionicons,
@@ -83,7 +84,7 @@ export default function AboutUsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         bounces={true}
-      >
+      >     
         {/* HERO SECTION */}
         <View style={styles.heroContainer}>
           <Image

@@ -53,18 +53,7 @@ export default function Login() {
       password: "",
     },
   });
-  const handleGoogleSignIn = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: "heybite://auth/callback",
-      },
-    });
 
-    if (error) {
-      console.log("Google sign-in error:", error.message);
-    }
-  };
   const handleLogin = async (formData: LoginFormData) => {
     if (loading) return;
 
@@ -286,7 +275,7 @@ export default function Login() {
             <Pressable
               disabled={loading}
               style={styles.socialButton}
-              onPress={handleGoogleSignIn}
+              
             >
               <FontAwesome6 name="google" size={17} color="#4285F4" />
               <Text style={styles.socialText}>Google</Text>

@@ -1,25 +1,30 @@
-import React, { useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useRef, useState } from 'react';
 import {
-  View,
+  Image,
+  KeyboardAvoidingView,
+  NativeSyntheticEvent,
+  Platform,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
+  TextInputKeyPressEventData,
   TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-// If using Expo: import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const VerifyOtpNowScreen = () => {
-  // State to hold the 5 digits
-  const [otp, setOtp] = useState(['', '', '', '', '']);
-  // Refs to handle focus moving to the next input automatically
-  const inputRefs = useRef([]);
+const Logo = require('./../../assets/icons/logo.png');
 
-  const handleChangeText = (text, index) => {
+const OTP_LENGTH = 5;
+
+const VerifyOtpNowScreen: React.FC = () => {
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
+  const inputRefs = useRef<(TextInput | null)[]>([]);
+
+  const handleChangeText = (text: string, index: number): void => {
     // Only allow numbers
     if (!/^\d*$/.test(text)) return;
 
@@ -28,54 +33,64 @@ const VerifyOtpNowScreen = () => {
     setOtp(newOtp);
 
     // Auto-focus next input if a digit was entered
-    if (text.length === 1 && index < 4) {
-      inputRefs.current[index + 1].focus();
+    if (text.length === 1 && index < OTP_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyPress = (e, index) => {
+  const handleKeyPress = (
+    e: NativeSyntheticEvent<TextInputKeyPressEventData>,
+    index: number
+  ): void => {
     // Move to previous input on backspace if current is empty
     if (e.nativeEvent.key === 'Backspace' && otp[index] === '' && index > 0) {
-      inputRefs.current[index - 1].focus();
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerify = (): void => {
+    const code = otp.join('');
+
+    // Testing only: remove once the real OTP check is in place
+    if (code === '12345') {
+      router.push('/(auth)/ResetPassword');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
-      
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardContainer}
       >
-        
         {/* Header Section */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
-             <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
           </TouchableOpacity>
-          
+
           <View style={styles.logoContainer}>
-            <Ionicons name="leaf" size={20} color="#26A65B" />
+            <Image source={Logo} style={styles.logo} resizeMode="contain" />
             <Text style={styles.logoText}>HeyBite</Text>
           </View>
         </View>
 
         {/* Main Content */}
         <View style={styles.contentContainer}>
-          
           <Text style={styles.title}>Verify OTP Now</Text>
-          
-          <Text style={styles.subtitle}>
-            Enter the 5-Digit Code Sent to You
-          </Text>
 
-          {/* OTP Input Boxes (5 Digits) */}
+          <Text style={styles.subtitle}>Enter the 5-Digit Code Sent to You</Text>
+
+          {/* OTP Input Boxes */}
           <View style={styles.otpContainer}>
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => (inputRefs.current[index] = ref)}
+                ref={(ref) => {
+                  inputRefs.current[index] = ref;
+                }}
                 style={styles.otpBox}
                 value={digit}
                 onChangeText={(text) => handleChangeText(text, index)}
@@ -89,7 +104,7 @@ const VerifyOtpNowScreen = () => {
           </View>
 
           {/* Verify Button */}
-          <TouchableOpacity style={styles.verifyButton}>
+          <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
             <Text style={styles.verifyButtonText}>Verify</Text>
           </TouchableOpacity>
 
@@ -99,9 +114,7 @@ const VerifyOtpNowScreen = () => {
               <Text style={styles.resendText}>Didn't get OTP? Resend OTP</Text>
             </TouchableOpacity>
           </View>
-
         </View>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -110,7 +123,7 @@ const VerifyOtpNowScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212', // Dark background
+    backgroundColor: '#121212',
   },
   keyboardContainer: {
     flex: 1,
@@ -133,51 +146,56 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  logo: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
+  },
   logoText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontFamily: 'PlusJakarta-SemiBold',
   },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-    paddingBottom: 80, // Push content up slightly
+    paddingBottom: 80,
   },
   title: {
     color: '#FFFFFF',
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'PlusJakarta-Bold',
     textAlign: 'center',
     marginBottom: 12,
   },
   subtitle: {
     color: '#888888',
     fontSize: 14,
+    fontFamily: 'PlusJakarta-Regular',
     textAlign: 'center',
     marginBottom: 40,
   },
   otpContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Spreads the 5 boxes evenly
+    justifyContent: 'space-between',
     marginBottom: 40,
-    paddingHorizontal: 10, // Prevents boxes from touching screen edges
+    paddingHorizontal: 10,
   },
   otpBox: {
     width: 50,
     height: 50,
     borderWidth: 1,
-    borderColor: '#333333', // Subtle border for the dark theme
+    borderColor: '#333333',
     borderRadius: 8,
     backgroundColor: '#1E1E1E',
     color: '#FFFFFF',
     fontSize: 22,
     textAlign: 'center',
-    fontWeight: '500',
+    fontFamily: 'PlusJakarta-Medium',
   },
   verifyButton: {
-    backgroundColor: '#2C8A56', // HeyBite Green
+    backgroundColor: '#2C8A56',
     borderRadius: 8,
     height: 56,
     justifyContent: 'center',
@@ -187,13 +205,13 @@ const styles = StyleSheet.create({
   verifyButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'PlusJakarta-SemiBold',
   },
   resendContainer: {
     alignItems: 'center',
   },
   resendButton: {
-    backgroundColor: '#143823', // Dark green background
+    backgroundColor: '#143823',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -203,7 +221,7 @@ const styles = StyleSheet.create({
   resendText: {
     color: '#2C8A56',
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'PlusJakarta-Medium',
   },
 });
 

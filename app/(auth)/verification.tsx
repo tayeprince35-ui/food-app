@@ -1,25 +1,27 @@
-import React, { useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useRef, useState } from 'react';
 import {
-  View,
+  KeyboardAvoidingView,
+  NativeSyntheticEvent,
+  Platform,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
+  TextInputKeyPressEventData,
   TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-// If using Expo: import { Ionicons } from '@expo/vector-icons';
-import {router} from "expo-router"
-const VerifyNumberScreen = () => {
-  // State to hold the 4 digits
-  const [otp, setOtp] = useState(['', '', '', '']);
-  // Refs to handle focus moving to the next input automatically
-  const inputRefs = useRef([]);
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-  const handleChangeText = (text, index) => {
+const OTP_LENGTH = 4;
+
+const VerifyNumberScreen: React.FC = () => {
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
+  const inputRefs = useRef<(TextInput | null)[]>([]);
+
+  const handleChangeText = (text: string, index: number): void => {
     // Only allow numbers
     if (!/^\d*$/.test(text)) return;
 
@@ -28,41 +30,43 @@ const VerifyNumberScreen = () => {
     setOtp(newOtp);
 
     // Auto-focus next input if a digit was entered
-    if (text.length === 1 && index < 3) {
-      inputRefs.current[index + 1].focus();
+    if (text.length === 1 && index < OTP_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyPress = (e, index) => {
+  const handleKeyPress = (
+    e: NativeSyntheticEvent<TextInputKeyPressEventData>,
+    index: number
+  ): void => {
     // Move to previous input on backspace if current is empty
     if (e.nativeEvent.key === 'Backspace' && otp[index] === '' && index > 0) {
-      inputRefs.current[index - 1].focus();
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
-      
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardContainer}
       >
-        
         {/* Header / Back Button */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-             <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
         {/* Main Content */}
         <View style={styles.contentContainer}>
-          
           <Text style={styles.title}>Verify your number</Text>
-          
+
           <Text style={styles.subtitle}>
-            We've sent a 4-digit code to <Text style={styles.boldText}>09025828588</Text> via <Text style={styles.boldText}>SMS</Text>. Enter the code below to verify your account
+            We've sent a 4-digit code to <Text style={styles.boldText}>09025828588</Text> via{' '}
+            <Text style={styles.boldText}>SMS</Text>. Enter the code below to verify your account
           </Text>
 
           <Text style={styles.inputLabel}>Enter OTP</Text>
@@ -72,7 +76,9 @@ const VerifyNumberScreen = () => {
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => (inputRefs.current[index] = ref)}
+                ref={(ref) => {
+                  inputRefs.current[index] = ref;
+                }}
                 style={styles.otpBox}
                 value={digit}
                 onChangeText={(text) => handleChangeText(text, index)}
@@ -89,7 +95,6 @@ const VerifyNumberScreen = () => {
           <TouchableOpacity style={styles.resendButton}>
             <Text style={styles.resendText}>Tap here to resend OTP (42s)</Text>
           </TouchableOpacity>
-
         </View>
 
         {/* Bottom Verify Button */}
@@ -98,7 +103,6 @@ const VerifyNumberScreen = () => {
             <Text style={styles.verifyButtonText}>Verify</Text>
           </TouchableOpacity>
         </View>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -122,7 +126,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     justifyContent: 'center',
-    marginLeft: -10, // Pull slightly to the left
+    marginLeft: -10,
   },
   contentContainer: {
     flex: 1,
@@ -145,7 +149,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   boldText: {
-    color: '#26A65B', // Highlighting green
+    color: '#26A65B',
     fontWeight: '600',
   },
   inputLabel: {
@@ -156,7 +160,7 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16, // If RN version < 0.71, use marginHorizontal on the boxes instead
+    gap: 16,
     marginBottom: 30,
   },
   otpBox: {
@@ -172,7 +176,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   resendButton: {
-    backgroundColor: '#143823', // Dark green background for pill
+    backgroundColor: '#143823',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
