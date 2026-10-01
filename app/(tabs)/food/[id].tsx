@@ -83,8 +83,7 @@ export default function FoodDetails() {
             }}
             contentFit="cover"
             cachePolicy="memory-disk"
-            transition={150}
-          />
+                    />
 
           {/* Dark gradient-ish overlay */}
           <View className="absolute inset-0 bg-black/10" />

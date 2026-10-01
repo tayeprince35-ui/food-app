@@ -4,16 +4,18 @@ import PopularNearAAUCard from "@/components/NearYouCard";
 import OrderAgainCard from "@/components/OrderAgain";
 import PromoSliderr from "@/components/PromoSliderr";
 import { typography } from "@/constants/typography";
+
 import POPULAR_ITEMS, {
   Foods,
   RestaurantAndMeal,
   RESTAURANTS_AND_MEALS,
 } from "@/data/food";
 import { useAuth } from "@/lib/AuthContext";
+
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -30,6 +32,10 @@ import plate from "../../assets/icons/plate.png";
 import rice from "../../assets/icons/rice.png";
 import shawarma from "../../assets/icons/shawarma.png";
 
+/* -------------------------------------------------------------------------- */
+/* TYPES                                                                      */
+/* -------------------------------------------------------------------------- */
+
 type Category = {
   id: string;
   name: string;
@@ -38,20 +44,48 @@ type Category = {
 
 type ListMode = "restaurant" | "food";
 
+/* -------------------------------------------------------------------------- */
+/* CATEGORIES                                                                 */
+/* -------------------------------------------------------------------------- */
+
 const CATEGORIES: Category[] = [
-  { id: "all", name: "All", icon: plate },
-  { id: "Rice", name: "Rice", icon: rice },
-  { id: "Chicken", name: "Chicken", icon: chicken },
-  { id: "Pizza", name: "Pizza", icon: pizza },
-  { id: "Shawarma", name: "Shawarma", icon: shawarma },
-  { id: "Grocery", name: "Grocery", icon: grocery },
+  {
+    id: "all",
+    name: "All",
+    icon: plate,
+  },
+  {
+    id: "Rice",
+    name: "Rice",
+    icon: rice,
+  },
+  {
+    id: "Chicken",
+    name: "Chicken",
+    icon: chicken,
+  },
+  {
+    id: "Pizza",
+    name: "Pizza",
+    icon: pizza,
+  },
+  {
+    id: "Shawarma",
+    name: "Shawarma",
+    icon: shawarma,
+  },
+  {
+    id: "Grocery",
+    name: "Grocery",
+    icon: grocery,
+  },
 ];
 
 const Logo = require("../../assets/icons/logo.png");
 
-/* ------------------------------------------------------------------ */
-/* HEADER                                                             */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* HEADER                                                                     */
+/* -------------------------------------------------------------------------- */
 
 function TopHeader({ user }: { user: any }) {
   return (
@@ -60,7 +94,10 @@ function TopHeader({ user }: { user: any }) {
         <View className="w-8 h-8 rounded-full bg-[#34C759] items-center justify-center">
           <Image
             source={Logo}
-            style={{ width: 23, height: 23 }}
+            style={{
+              width: 23,
+              height: 23,
+            }}
             contentFit="contain"
           />
         </View>
@@ -86,6 +123,10 @@ function TopHeader({ user }: { user: any }) {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* GREETING                                                                   */
+/* -------------------------------------------------------------------------- */
+
 function Greeting({ user }: { user: any }) {
   return (
     <View className="px-5 mt-4">
@@ -94,12 +135,17 @@ function Greeting({ user }: { user: any }) {
       </Text>
 
       <Text style={typography.bold} className="text-2xl text-white mt-1">
-        What are you <Text className="text-[#34C759]">craving</Text>
-        {"\n"}today, {user?.user_metadata?.firstName || "there"}?
+        What are <Text className="text-[#34C759]">craving</Text>
+        {"\n"}
+        today, {user?.user_metadata?.firstName || "there"}?
       </Text>
     </View>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* SEARCH BAR                                                                 */
+/* -------------------------------------------------------------------------- */
 
 function SearchBar() {
   return (
@@ -122,9 +168,9 @@ function SearchBar() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* CATEGORIES                                                         */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* CATEGORIES                                                                 */
+/* -------------------------------------------------------------------------- */
 
 function CategoryTabs({
   activeCategory,
@@ -144,8 +190,6 @@ function CategoryTabs({
           <Text style={typography.semiBold} className="text-[#34C759] text-xs">
             All categories
           </Text>
-
-          <Ionicons name="arrow-forward" size={12} color="#34C759" />
         </Pressable>
       </View>
 
@@ -173,10 +217,12 @@ function CategoryTabs({
               >
                 <Image
                   source={category.icon}
-                  style={{ width: 68, height: 68 }}
+                  style={{
+                    width: 68,
+                    height: 68,
+                  }}
                   contentFit="contain"
                   cachePolicy="memory-disk"
-                  transition={100}
                 />
               </View>
 
@@ -196,9 +242,9 @@ function CategoryTabs({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* FLASH DEALS                                                        */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* FLASH DEALS                                                                */
+/* -------------------------------------------------------------------------- */
 
 function FlashDealsHeader() {
   return (
@@ -240,7 +286,9 @@ function FlashDealsList() {
           }
         >
           <Image
-            source={{ uri: deal.image }}
+            source={{
+              uri: deal.image,
+            }}
             style={{
               width: 144,
               height: 96,
@@ -268,9 +316,9 @@ function FlashDealsList() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* POPULAR NEAR AAU                                                   */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* POPULAR NEAR AAU                                                           */
+/* -------------------------------------------------------------------------- */
 
 function PopularNearAAUSection() {
   const randomizedFoods = useMemo(() => {
@@ -306,10 +354,10 @@ function PopularNearAAUSection() {
             {...item}
             onPress={() =>
               router.push({
+                pathname: "/food/[id]",
                 params: {
                   id: String(item.id),
                 },
-                pathname: "/food/[id]",
               })
             }
           />
@@ -319,11 +367,16 @@ function PopularNearAAUSection() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* DYNAMIC HOME CARD                                                  */
-/* ------------------------------------------------------------------ */
-
-function HomeCard({ item, mode }: { item: any; mode: ListMode }) {
+/* -------------------------------------------------------------------------- */
+/* DYNAMIC HOME CARD                                                          */
+/* -------------------------------------------------------------------------- */
+const HomeCard = memo(function HomeCard({
+  item,
+  mode,
+}: {
+  item: any;
+  mode: ListMode;
+}) {
   const isRestaurant = mode === "restaurant";
 
   const handlePress = () => {
@@ -354,10 +407,11 @@ function HomeCard({ item, mode }: { item: any; mode: ListMode }) {
         onPress={handlePress}
         className="bg-[#121418] rounded-3xl border border-white/5 overflow-hidden"
       >
-        {/* IMAGE */}
         <View className="relative w-full h-44">
           <Image
-            source={{ uri: item.image }}
+            source={{
+              uri: item.image,
+            }}
             style={{
               width: "100%",
               height: "100%",
@@ -386,9 +440,7 @@ function HomeCard({ item, mode }: { item: any; mode: ListMode }) {
           </View>
         </View>
 
-        {/* CONTENT */}
         <View className="p-4">
-          {/* TITLE + RATING */}
           <View className="flex-row justify-between items-center mb-2">
             <Text
               style={typography.bold}
@@ -407,7 +459,6 @@ function HomeCard({ item, mode }: { item: any; mode: ListMode }) {
             </View>
           </View>
 
-          {/* RESTAURANT INFO */}
           {isRestaurant ? (
             <>
               <View className="flex-row items-center gap-3 mb-3">
@@ -445,7 +496,6 @@ function HomeCard({ item, mode }: { item: any; mode: ListMode }) {
                 </Text>
               </View>
 
-              {/* CATEGORIES */}
               <View className="flex-row flex-wrap gap-2">
                 {item.categories?.map((category: string, index: number) => (
                   <View
@@ -464,7 +514,6 @@ function HomeCard({ item, mode }: { item: any; mode: ListMode }) {
             </>
           ) : (
             <>
-              {/* FOOD DESCRIPTION */}
               <Text
                 style={typography.regular}
                 className="text-[#A0A0A0] text-xs mb-3"
@@ -474,7 +523,6 @@ function HomeCard({ item, mode }: { item: any; mode: ListMode }) {
                   `Delicious ${item.name} from ${item.restaurant}`}
               </Text>
 
-              {/* FOOD PRICE + CART */}
               <View className="flex-row justify-between items-center">
                 <Text
                   style={typography.bold}
@@ -491,11 +539,11 @@ function HomeCard({ item, mode }: { item: any; mode: ListMode }) {
       </Pressable>
     </View>
   );
-}
+});
 
-/* ------------------------------------------------------------------ */
-/* EMPTY STATE                                                        */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* EMPTY STATE                                                                */
+/* -------------------------------------------------------------------------- */
 
 function EmptyList({ mode, category }: { mode: ListMode; category: string }) {
   const isRestaurant = mode === "restaurant";
@@ -523,14 +571,18 @@ function EmptyList({ mode, category }: { mode: ListMode; category: string }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* HOME                                                               */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* HOME                                                                       */
+/* -------------------------------------------------------------------------- */
 
 export default function Home() {
   const { user } = useAuth();
 
   const [activeCategory, setActiveCategory] = useState("all");
+
+  const setCategory = (category: string) => {
+    setActiveCategory(category);
+  };
 
   const randomizedFoods = useMemo(() => {
     return [...POPULAR_ITEMS].sort(() => Math.random() - 0.5);
@@ -542,17 +594,15 @@ export default function Home() {
     });
   }, [randomizedFoods, activeCategory]);
 
-  /*
-   * Everything that changes between the two list modes
-   * lives here.
-   */
   type HomeListItem =
     | Foods
     | RestaurantAndMeal
     | (typeof RESTAURANTS_AND_MEALS)[number];
+
   const isAll = activeCategory === "all";
 
   const listMode: ListMode = isAll ? "restaurant" : "food";
+
   const listData: HomeListItem[] = isAll
     ? RESTAURANTS_AND_MEALS
     : filteredFoods;
@@ -577,29 +627,34 @@ export default function Home() {
 
             <SearchBar />
 
-            {/* Only show promo on the "All" screen */}
-            {isAll && <PromoSliderr />}
+            <View
+              style={{
+                display: isAll ? "flex" : "none",
+              }}
+            >
+              <PromoSliderr />
+            </View>
 
             <CategoryTabs
               activeCategory={activeCategory}
-              setActiveCategory={setActiveCategory}
+              setActiveCategory={setCategory}
             />
 
-            {/* Only show flash deals on the "All" screen */}
             {isAll && (
               <>
                 <FlashDealsHeader />
                 <FlashDealsList />
               </>
             )}
+
             <Text
               style={typography.semiBold}
-              className="text-white text-lg ml-7  "
+              className="text-white text-lg ml-7"
               numberOfLines={1}
             >
               Restaurants Near you
             </Text>
-            {/* Only show this title for category mode */}
+
             {!isAll && (
               <View className="mt-6 px-5 flex-row justify-between items-center">
                 <Text style={typography.bold} className="text-lg text-white">
@@ -618,10 +673,14 @@ export default function Home() {
         }
         ListFooterComponent={
           <>
-            {/* Only show Popular Near AAU on "All" */}
-            {isAll && <PopularNearAAUSection />}
+            <View
+              style={{
+                display: isAll ? "flex" : "none",
+              }}
+            >
+              <PopularNearAAUSection />
+            </View>
 
-            {/* Always show Order Again */}
             <OrderAgainCard />
           </>
         }
@@ -631,7 +690,7 @@ export default function Home() {
         initialNumToRender={6}
         maxToRenderPerBatch={6}
         windowSize={5}
-        removeClippedSubviews
+        removeClippedSubviews={true}
       />
     </View>
   );

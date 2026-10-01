@@ -97,6 +97,9 @@ export default function AboutUsScreen() {
             colors={["transparent", "rgba(3, 14, 10, 0.65)", COLORS.bgDark]}
             style={styles.heroGradient}
           />
+            <View style={styles.backButton}>
+    <GlassBackButton />
+  </View>
 
           <View style={styles.heroTextContainer}>
             <View style={styles.badge}>
@@ -447,6 +450,12 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     fontFamily: "PlusJakarta-Bold",
   },
+  backButton: {
+  position: "absolute",
+  top: 35,
+  left: 20,
+  zIndex: 20,
+},
   glassCard: {
     backgroundColor: COLORS.cardBg,
     borderRadius: 20,

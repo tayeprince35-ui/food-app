@@ -1,18 +1,18 @@
-import PromoSkeleton from "@/components/PromoSkeleton";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Animated,
+  FlatList,
   Image,
-  ScrollView,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 
 const AUTO_SLIDE_INTERVAL = 4500;
-const RESUME_DELAY = 1000;
 
 // --- Image Assets ---
 const ScooterImage = require("@/assets/icons/container.png");
@@ -40,10 +40,7 @@ function PromoCard({
   ctaColor,
   imageSource,
 }: any) {
-  const imageSize = IMAGE_SIZES[index] || {
-    width: 140,
-    height: 140,
-  };
+  const imageSize = IMAGE_SIZES[index] || { width: 140, height: 140 };
 
   return (
     <LinearGradient colors={colors} style={styles.card}>
@@ -123,193 +120,88 @@ function NewItemsCard({ index }: { index: number }) {
 
 const SLIDES = [DeliveryCard, DiscountCard, NewItemsCard];
 
-export default function PromoSlider() {
-  const [isPaused, setIsPaused] = useState(false);
-  const [slideWidth, setSlideWidth] = useState(0);
+// --- Slider ---
+function PromoSlider() {
+  const { width } = useWindowDimensions();
 
-  const scrollRef = useRef<ScrollView>(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const listRef = useRef<FlatList>(null);
+  const indexRef = useRef(0);
 
-  const currentIndex = useRef(0);
-  const autoSlideTimer = useRef<number | null>(null);
-  const resumeTimer = useRef<number | null>(null);
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
-  // Measure the actual width of the component
-  const handleLayout = (e: any) => {
-    const measuredWidth = e.nativeEvent.layout.width;
-
-    if (measuredWidth > 0 && measuredWidth !== slideWidth) {
-      setSlideWidth(measuredWidth);
-    }
-  };
-
-  // Track current slide
-  const handleScroll = (event: any) => {
-    if (!slideWidth) return;
-
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const newIndex = Math.round(contentOffsetX / slideWidth);
-
-    if (newIndex >= 0 && newIndex < SLIDES.length) {
-      currentIndex.current = newIndex;
-    }
-  };
-
-  // Go to specific slide
-  const goTo = (index: number) => {
-    currentIndex.current = index;
-
-    scrollRef.current?.scrollTo({
-      x: index * slideWidth,
-      animated: true,
-    });
-  };
-
-  // Pause auto-slide
-  const handleTouchStart = () => {
-    setIsPaused(true);
-
-    if (resumeTimer.current) {
-      clearTimeout(resumeTimer.current);
-    }
-  };
-
-  // Resume auto-slide
-  const handleTouchEnd = () => {
-    if (resumeTimer.current) {
-      clearTimeout(resumeTimer.current);
-    }
-
-    resumeTimer.current = setTimeout(() => {
-      setIsPaused(false);
-    }, RESUME_DELAY);
-  };
+  const goTo = useCallback((i: number) => {
+    indexRef.current = i;
+    setIndex(i);
+    listRef.current?.scrollToIndex({ index: i, animated: true });
+  }, []);
 
   // Auto-slide
   useEffect(() => {
-    if (!slideWidth || isPaused) {
-      if (autoSlideTimer.current) {
-        clearInterval(autoSlideTimer.current);
-      }
+    if (paused) return;
 
-      return;
-    }
-
-    autoSlideTimer.current = setInterval(() => {
-      const nextIndex = (currentIndex.current + 1) % SLIDES.length;
-
-      goTo(nextIndex);
+    const id = setInterval(() => {
+      goTo((indexRef.current + 1) % SLIDES.length);
     }, AUTO_SLIDE_INTERVAL);
 
-    return () => {
-      if (autoSlideTimer.current) {
-        clearInterval(autoSlideTimer.current);
-      }
-    };
-  }, [isPaused, slideWidth]);
+    return () => clearInterval(id);
+  }, [paused, goTo]);
 
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (autoSlideTimer.current) {
-        clearInterval(autoSlideTimer.current);
-      }
-
-      if (resumeTimer.current) {
-        clearTimeout(resumeTimer.current);
-      }
-    };
-  }, []);
+  // Update the active dot after a swipe settles
+  const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const i = Math.round(e.nativeEvent.contentOffset.x / width);
+    indexRef.current = i;
+    setIndex(i);
+    setPaused(false);
+  };
 
   return (
-    <View style={styles.container} onLayout={handleLayout}>
-      {!slideWidth ? (
-        <PromoSkeleton />
-      ) : (
-        <>
-          <Animated.ScrollView
-            ref={scrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            decelerationRate="fast"
-            onScroll={Animated.event(
-              [
-                {
-                  nativeEvent: {
-                    contentOffset: {
-                      x: scrollX,
-                    },
-                  },
-                },
-              ],
-              {
-                useNativeDriver: false,
-                listener: handleScroll,
-              },
-            )}
-            scrollEventThrottle={16}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onScrollBeginDrag={handleTouchStart}
-            onScrollEndDrag={handleTouchEnd}
-          >
-            {SLIDES.map((Slide, index) => (
-              <View key={index} style={{ width: slideWidth }}>
-                <View style={styles.cardPadding}>
-                  <Slide index={index} />
-                </View>
-              </View>
-            ))}
-          </Animated.ScrollView>
-
-          {/* Pagination */}
-          <View style={styles.dots}>
-            {SLIDES.map((_, index) => {
-              const dotWidth = scrollX.interpolate({
-                inputRange: [
-                  (index - 1) * slideWidth,
-                  index * slideWidth,
-                  (index + 1) * slideWidth,
-                ],
-                outputRange: [8, 20, 8],
-                extrapolate: "clamp",
-              });
-
-              const dotColor = scrollX.interpolate({
-                inputRange: [
-                  (index - 1) * slideWidth,
-                  index * slideWidth,
-                  (index + 1) * slideWidth,
-                ],
-                outputRange: ["#3a3a3a", DOT_COLORS[index], "#3a3a3a"],
-                extrapolate: "clamp",
-              });
-
-              return (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => goTo(index)}
-                  hitSlop={8}
-                >
-                  <Animated.View
-                    style={[
-                      styles.dot,
-                      {
-                        width: dotWidth,
-                        backgroundColor: dotColor,
-                      },
-                    ]}
-                  />
-                </TouchableOpacity>
-              );
-            })}
+    <View style={styles.container}>
+      <FlatList
+        ref={listRef}
+        data={SLIDES}
+        keyExtractor={(_, i) => String(i)}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
+        getItemLayout={(_, i) => ({
+          length: width,
+          offset: width * i,
+          index: i,
+        })}
+        onScrollBeginDrag={() => setPaused(true)}
+        onMomentumScrollEnd={onMomentumEnd}
+        renderItem={({ item: Slide, index: i }) => (
+          <View style={{ width }}>
+            <View style={styles.cardPadding}>
+              <Slide index={i} />
+            </View>
           </View>
-        </>
-      )}
+        )}
+      />
+
+      {/* Pagination */}
+      <View style={styles.dots}>
+        {SLIDES.map((_, i) => (
+          <TouchableOpacity key={i} onPress={() => goTo(i)} hitSlop={8}>
+            <View
+              style={[
+                styles.dot,
+                {
+                  width: i === index ? 20 : 8,
+                  backgroundColor: i === index ? DOT_COLORS[i] : "#3a3a3a",
+                },
+              ]}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 }
+
+export default React.memo(PromoSlider);
 
 const styles = StyleSheet.create({
   container: {

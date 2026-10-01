@@ -130,7 +130,7 @@ export default function Search(): React.JSX.Element {
                 </TouchableOpacity>
               )}
             </View>
-            <TouchableOpacity onPress={() => router.push("/(tabs)")}>
+            <TouchableOpacity onPress={() => router.back()}>
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>

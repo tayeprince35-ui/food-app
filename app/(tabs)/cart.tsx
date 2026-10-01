@@ -74,7 +74,12 @@ const CartScreen = () => {
         {/* Your Items Section */}
         <Text style={styles.sectionHeader}>YOUR ITEMS</Text>
 
-        <View style={styles.itemsContainer}>
+        <View
+          style={[
+            styles.itemsContainer,
+            { backgroundColor: cart.length > 0 ? "#1C1C1E" : "transparent" },
+          ]}
+        >
           {cart.map((item, index) => (
             <View key={item.id || index}>
               <View style={styles.cartItem}>
@@ -283,7 +288,6 @@ const styles = StyleSheet.create({
   },
 
   itemsContainer: {
-    backgroundColor: "#1C1C1E",
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
