@@ -57,7 +57,7 @@ export default function ForgotPasswordScreen() {
         visibilityTime: 1000,
       });
 
-      // router.push("/(auth)/VerifyCodeScreen");
+      router.push("/(auth)/verification");
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "Please try again later.";

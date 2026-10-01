@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -67,7 +68,15 @@ const RestaurantScreen = () => {
       </SafeAreaView>
     );
   }
-
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Check out ${Dish.restaurant} on HeyBite! Rated ${Dish.rating}, delivers in ${Dish.deliveryTime}.`,
+      });
+    } catch (error) {
+      console.log("Share failed", error);
+    }
+  };
   const cartTotal = cart.reduce(
     (total, item) => total + Number(item.price) * Number(item.quantity ?? 1),
     0,
@@ -101,6 +110,7 @@ const RestaurantScreen = () => {
 
                 <TouchableOpacity
                   style={[styles.iconButton, { marginLeft: 10 }]}
+                  onPress={handleShare}
                 >
                   <Ionicons
                     name="share-social-outline"

@@ -1,5 +1,3 @@
-
-
 import { typography } from "@/constants/typography";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 interface Category {
@@ -8,39 +6,32 @@ interface Category {
   emoji: string;
   color: string;
 }
-
-export default function CategoryCard({ item }: { item: Category }) {
+type Props = {
+  item: Category;
+  onPress: () => void; // new
+};
+export default function CategoryCard({ item, onPress }: Props) {
   return (
     <Pressable
-      style={[
-        styles.categoryCard,
-        { backgroundColor: item.color },
-      ]}
+      style={[styles.categoryCard, { backgroundColor: item.color }]}
+      onPress={onPress}
     >
       <View>
-        <Text
-          style={[typography.semiBold, styles.categoryTitle]}
-        >
+        <Text style={[typography.semiBold, styles.categoryTitle]}>
           {item.title}
         </Text>
 
-        <Text
-          style={[typography.regular, styles.categorySubtitle]}
-        >
+        <Text style={[typography.regular, styles.categorySubtitle]}>
           {item.subtitle}
         </Text>
       </View>
 
-      <Text style={styles.categoryEmoji}>
-        {item.emoji}
-      </Text>
+      <Text style={styles.categoryEmoji}>{item.emoji}</Text>
     </Pressable>
   );
 }
 const styles = StyleSheet.create({
-    
- 
- categoryEmoji: {
+  categoryEmoji: {
     fontSize: 34,
     marginRight: 1,
   },
@@ -65,4 +56,5 @@ const styles = StyleSheet.create({
   categorySubtitle: {
     color: "#eeeeee",
     fontSize: 11,
-  },});
+  },
+});

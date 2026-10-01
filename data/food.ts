@@ -13,7 +13,7 @@ export type RestaurantAndMeal = {
   restaurant: string;
   rating: number;
   deliveryTime: string;
-   image: string;
+  image: string;
   categories: string[];
 };
 
@@ -98,7 +98,6 @@ export const FOOD_ITEMS = [
     startingPrice: 600,
     image:
       "https://images.unsplash.com/photo-1553530666-ba11a7da3888?q=80&w=600",
-
   },
   {
     id: "10",
@@ -110,7 +109,7 @@ export const FOOD_ITEMS = [
       "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600",
   },
 ];
-export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
+export const RESTAURANTS_AND_MEALS: RestaurantAndMeal[] = [
   {
     id: 1,
     restaurant: "Iya Meta Food Canteen",
@@ -118,7 +117,7 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "20-30 min",
     image:
       "https://i.pinimg.com/736x/e2/6f/92/e26f921977e1636c4f3cda56b276c789.jpg",
-    categories: ["Local Dishes", "Buka", "Rice"],
+    categories: ["Nigerian Food", "Local Dishes", "Buka", "Rice"],
   },
   {
     id: 2,
@@ -127,8 +126,8 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "25-35 min",
     image:
       "https://i.pinimg.com/736x/fd/43/42/fd4342e0a9e8b6bf6fb23b63eccc314c.jpg",
-     categories: ["Rice", "Chicken", "Soup"], },
-
+    categories: ["Nigerian Food", "Rice", "Chicken", "Soup"],
+  },
   {
     id: 3,
     restaurant: "Amala Skye (Bodija Mama Put)",
@@ -136,7 +135,12 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "15-25 min",
     image:
       "https://i.pinimg.com/736x/cc/40/70/cc40706d87a228edcedd79a033dea0ea.jpg",
-    categories: ["Jollof Rice", "Local Dishes", "Fried Chicken"],
+    categories: [
+      "Nigerian Food",
+      "Jollof Rice",
+      "Local Dishes",
+      "Fried Chicken",
+    ],
   },
   {
     id: 4,
@@ -154,7 +158,7 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "15-20 min",
     image:
       "https://i.pinimg.com/736x/b4/20/bb/b420bb3ed2f985a2c16058a3a903bc18.jpg",
-    categories: ["Smoothies", "Shawarma", "Rice"],
+    categories: ["Drinks & Wines", "Snacks", "Smoothies", "Shawarma", "Rice"],
   },
   {
     id: 6,
@@ -163,9 +167,8 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "25-40 min",
     image:
       "https://i.pinimg.com/736x/72/e6/92/72e69291131ea2f5a11f1be1abf79b34.jpg",
-    categories: ["Shawarma", "Grill", "Fast Food"],
+    categories: ["Snacks", "Shawarma", "Grill", "Fast Food"],
   },
-
   {
     id: 7,
     restaurant: "Mr Biggs",
@@ -173,7 +176,7 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "20-35 min",
     image:
       "https://i.pinimg.com/736x/13/d7/71/13d77124cd6e335f1819ed1fddab9a26.jpg",
-    categories: ["Ice Cream", "Desserts", "Gelato"],
+    categories: ["Desserts", "Ice Cream", "Gelato"],
   },
   {
     id: 8,
@@ -182,17 +185,17 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "15-30 min",
     image:
       "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?q=80&w=400&auto=format&fit=crop",
-    categories: ["Suya", "Grilled Meat", "Northern Cuisine"],
+    categories: ["Nigerian Food", "Suya", "Grilled Meat", "Northern Cuisine"],
   },
   {
     id: 9,
-    restaurant: "The Place Restaurant ",
+    restaurant: "The Place Restaurant",
     rating: 4.4,
     deliveryTime: "20-30 min",
     image:
       "https://i.pinimg.com/736x/d7/ff/8c/d7ff8c0a61814346f91a8268044c6589.jpg",
-      categories: ["Buffet", "Efo", "Asun Jollof"],},
-
+    categories: ["Nigerian Food", "Buffet", "Efo", "Asun Jollof"],
+  },
   {
     id: 10,
     restaurant: "Ibadan Buka Express",
@@ -200,7 +203,7 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "20-35 min",
     image:
       "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=400&auto=format&fit=crop",
-    categories: ["Pepper Rice", "Local Dishes", "Spicy"],
+    categories: ["Nigerian Food", "Pepper Rice", "Local Dishes", "Spicy"],
   },
   {
     id: 11,
@@ -209,9 +212,14 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "20-35 min",
     image:
       "https://i.pinimg.com/736x/d8/ea/d6/d8ead6cdcaedb04389d96b4740946a74.jpg",
-          categories: ["QuickChops", "Drinks", "Fried Chicken"],
+    categories: [
+      "Drinks & Wines",
+      "Snacks",
+      "QuickChops",
+      "Drinks",
+      "Fried Chicken",
+    ],
   },
-  
   {
     id: 12,
     restaurant: "Chicken Republic",
@@ -219,9 +227,8 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "20-35 min",
     image:
       "https://i.pinimg.com/736x/62/bf/82/62bf82515f37e01ad14ba1e13f850a6e.jpg",
-    categories: ["Fried Chicken", "Fast Food", "Wings"],
+    categories: ["Burgers", "Snacks", "Fried Chicken", "Fast Food", "Wings"],
   },
-
   {
     id: 13,
     restaurant: "Crunchies",
@@ -229,10 +236,9 @@ export const RESTAURANTS_AND_MEALS : RestaurantAndMeal[] = [
     deliveryTime: "20-35 min",
     image:
       "https://i.pinimg.com/736x/d7/01/6e/d7016e9ae5afe07a9c4374c6a319f587.jpg",
-    categories: ["Pastries", "Bakery", "Snacks"],
+    categories: ["Desserts", "Snacks", "Pastries", "Bakery"],
   },
 ];
-
 const POPULAR_ITEMS: Foods[] = [
   {
     id: 1,

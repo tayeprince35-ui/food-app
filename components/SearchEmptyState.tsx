@@ -2,13 +2,16 @@ import { categories, recentSearches, trendingItems } from "@/assets/data";
 import CategoryCard from "@/components/BrowseCategories";
 import RecentItem, { SectionTitle } from "@/components/RecentItem";
 import TrendingChip from "@/components/TrendingSearches";
+import { RESTAURANTS_AND_MEALS } from "@/data/food";
 import { StyleSheet, View } from "react-native";
 type SearchEmptyStateProps = {
-  onTrendingPress: (title: string) => void;
+  onTrendingPress: (text: string) => void;
+  onCategoryPress: (category: string) => void;
 };
 
 export default function SearchEmptyState({
   onTrendingPress,
+  onCategoryPress,
 }: SearchEmptyStateProps) {
   return (
     <>
@@ -39,9 +42,22 @@ export default function SearchEmptyState({
       <SectionTitle icon="▦">BROWSE CATEGORIES</SectionTitle>
 
       <View style={styles.categoryGrid}>
-        {categories.map((item) => (
-          <CategoryCard key={item.title} item={item} />
-        ))}
+        {categories.map((item) => {
+          const count = RESTAURANTS_AND_MEALS.filter((r) =>
+            r.categories.includes(item.title),
+          ).length;
+
+          return (
+            <CategoryCard
+              key={item.title}
+              item={{
+                ...item,
+                subtitle: `${count} ${count === 1 ? "restaurant" : "restaurants"}`,
+              }}
+              onPress={() => onCategoryPress(item.title)}
+            />
+          );
+        })}
       </View>
     </>
   );

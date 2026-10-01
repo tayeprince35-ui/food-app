@@ -98,7 +98,7 @@ function InitialLayout() {
     } else if (isGuest && inAuthGroup) {
       router.replace("/DeliveryAddressScreen");
     } else if (!session && !isGuest && !inAuthGroup) {
-      router.replace("/(auth)/login");
+      router.replace("/splash");
     }
   }, [session, isGuest, isLoading, segments]);
   if (isLoading || (!fontsLoaded && !fontError)) {
