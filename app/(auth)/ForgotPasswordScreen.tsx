@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
@@ -27,6 +28,7 @@ const MUTED = "#969696";
 const WHITE = "#F8F8F8";
 
 export default function ForgotPasswordScreen() {
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -57,7 +59,7 @@ export default function ForgotPasswordScreen() {
         visibilityTime: 1000,
       });
 
-      router.push("/(auth)/verification");
+      router.push("/(auth)/emailCode");
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "Please try again later.";

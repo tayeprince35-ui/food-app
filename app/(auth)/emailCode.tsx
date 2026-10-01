@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 // If using Expo: import { Ionicons } from '@expo/vector-icons';
-import {router} from "expo-router"
-const VerifyNumberScreen = () => {
-  // State to hold the 4 digits
-  const [otp, setOtp] = useState(['', '', '', '']);
+
+const VerifyOtpNowScreen = () => {
+  // State to hold the 5 digits
+  const [otp, setOtp] = useState(['', '', '', '', '']);
   // Refs to handle focus moving to the next input automatically
   const inputRefs = useRef([]);
 
@@ -28,7 +28,7 @@ const VerifyNumberScreen = () => {
     setOtp(newOtp);
 
     // Auto-focus next input if a digit was entered
-    if (text.length === 1 && index < 3) {
+    if (text.length === 1 && index < 4) {
       inputRefs.current[index + 1].focus();
     }
   };
@@ -49,25 +49,28 @@ const VerifyNumberScreen = () => {
         style={styles.keyboardContainer}
       >
         
-        {/* Header / Back Button */}
+        {/* Header Section */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.backButton}>
              <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
+          
+          <View style={styles.logoContainer}>
+            <Ionicons name="leaf" size={20} color="#26A65B" />
+            <Text style={styles.logoText}>HeyBite</Text>
+          </View>
         </View>
 
         {/* Main Content */}
         <View style={styles.contentContainer}>
           
-          <Text style={styles.title}>Verify your number</Text>
+          <Text style={styles.title}>Verify OTP Now</Text>
           
           <Text style={styles.subtitle}>
-            We've sent a 4-digit code to <Text style={styles.boldText}>09025828588</Text> via <Text style={styles.boldText}>SMS</Text>. Enter the code below to verify your account
+            Enter the 5-Digit Code Sent to You
           </Text>
 
-          <Text style={styles.inputLabel}>Enter OTP</Text>
-
-          {/* OTP Input Boxes */}
+          {/* OTP Input Boxes (5 Digits) */}
           <View style={styles.otpContainer}>
             {otp.map((digit, index) => (
               <TextInput
@@ -85,18 +88,18 @@ const VerifyNumberScreen = () => {
             ))}
           </View>
 
-          {/* Resend OTP Button */}
-          <TouchableOpacity style={styles.resendButton}>
-            <Text style={styles.resendText}>Tap here to resend OTP (42s)</Text>
-          </TouchableOpacity>
-
-        </View>
-
-        {/* Bottom Verify Button */}
-        <View style={styles.bottomContainer}>
+          {/* Verify Button */}
           <TouchableOpacity style={styles.verifyButton}>
             <Text style={styles.verifyButtonText}>Verify</Text>
           </TouchableOpacity>
+
+          {/* Resend OTP Button */}
+          <View style={styles.resendContainer}>
+            <TouchableOpacity style={styles.resendButton}>
+              <Text style={styles.resendText}>Didn't get OTP? Resend OTP</Text>
+            </TouchableOpacity>
+          </View>
+
         </View>
 
       </KeyboardAvoidingView>
@@ -107,99 +110,101 @@ const VerifyNumberScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#121212', // Dark background
   },
   keyboardContainer: {
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 20,
     paddingTop: 20,
+    position: 'relative',
     height: 60,
-    justifyContent: 'center',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    marginLeft: -10, // Pull slightly to the left
+    position: 'absolute',
+    left: 20,
+    zIndex: 10,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 24,
-    alignItems: 'center',
-    paddingTop: 20,
+    justifyContent: 'center',
+    paddingBottom: 80, // Push content up slightly
   },
   title: {
     color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
   },
   subtitle: {
     color: '#888888',
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 40,
-    paddingHorizontal: 10,
-  },
-  boldText: {
-    color: '#26A65B', // Highlighting green
-    fontWeight: '600',
-  },
-  inputLabel: {
-    color: '#FFFFFF',
     fontSize: 14,
-    marginBottom: 20,
+    textAlign: 'center',
+    marginBottom: 40,
   },
   otpContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16, // If RN version < 0.71, use marginHorizontal on the boxes instead
-    marginBottom: 30,
+    justifyContent: 'space-between', // Spreads the 5 boxes evenly
+    marginBottom: 40,
+    paddingHorizontal: 10, // Prevents boxes from touching screen edges
   },
   otpBox: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#333333', // Subtle border for the dark theme
     borderRadius: 8,
     backgroundColor: '#1E1E1E',
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 22,
     textAlign: 'center',
     fontWeight: '500',
   },
-  resendButton: {
-    backgroundColor: '#143823', // Dark green background for pill
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#2C8A56',
-  },
-  resendText: {
-    color: '#2C8A56',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  bottomContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 40,
-  },
   verifyButton: {
-    backgroundColor: '#238046',
+    backgroundColor: '#2C8A56', // HeyBite Green
     borderRadius: 8,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 24,
   },
   verifyButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
+  resendContainer: {
+    alignItems: 'center',
+  },
+  resendButton: {
+    backgroundColor: '#143823', // Dark green background
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#2C8A56',
+  },
+  resendText: {
+    color: '#2C8A56',
+    fontSize: 12,
+    fontWeight: '500',
+  },
 });
 
-export default VerifyNumberScreen;
+export default VerifyOtpNowScreen;
