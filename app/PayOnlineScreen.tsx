@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 const PayOnlineScreen = () => {
-  const [timeLeft, setTimeLeft] = useState(47);
+  const [timeLeft, setTimeLeft] = useState(467);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Countdown timer logic

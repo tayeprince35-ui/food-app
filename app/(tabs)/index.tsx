@@ -88,16 +88,17 @@ const Logo = require("../../assets/icons/logo.png");
 /* -------------------------------------------------------------------------- */
 
 function TopHeader({ user }: { user: any }) {
+  const avatarUrl: string | undefined = user?.user_metadata?.avatar_url;
+  const initial =
+    user?.user_metadata?.first_name?.charAt(0).toUpperCase() || "?";
+
   return (
     <View className="px-5 pt-[60px] pb-2 flex-row justify-between items-center">
       <View className="flex-row items-center gap-2">
         <View className="w-8 h-8 rounded-full bg-[#34C759] items-center justify-center">
           <Image
             source={Logo}
-            style={{
-              width: 23,
-              height: 23,
-            }}
+            style={{ width: 23, height: 23 }}
             contentFit="contain"
           />
         </View>
@@ -112,17 +113,24 @@ function TopHeader({ user }: { user: any }) {
           <Ionicons name="notifications-outline" size={24} color="#FFF" />
         </Pressable>
 
-        <Text
-          style={typography.bold}
-          className="w-9 h-9 rounded-full bg-[#2C2C2E] text-base text-[#34C759] flex items-center justify-center"
-        >
-          {user?.user_metadata?.first_name?.charAt(0).toUpperCase() || "?"}
-        </Text>
+        <View className="w-9 h-9 rounded-full bg-[#2C2C2E] items-center justify-center overflow-hidden">
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              style={{ width: 36, height: 36 }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+            />
+          ) : (
+            <Text style={typography.bold} className="text-base text-[#34C759]">
+              {initial}
+            </Text>
+          )}
+        </View>
       </View>
     </View>
   );
 }
-
 /* -------------------------------------------------------------------------- */
 /* GREETING                                                                   */
 /* -------------------------------------------------------------------------- */

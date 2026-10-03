@@ -95,12 +95,10 @@ export default function EmptyCart({ onPressShopNow }) {
       </TouchableOpacity>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
+}const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent", // Rich dark green background
+    backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
@@ -125,21 +123,22 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "700",
-    color: "#ECFDF5", // Soft white with green tint
+    fontFamily: "PlusJakarta-Bold",
+    color: "#ECFDF5",
     marginBottom: 10,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 15,
-    color: "#A7F3D0", // Light sage green accent color
+    fontFamily: "PlusJakarta-Regular",
+    color: "#A7F3D0",
     textAlign: "center",
     lineHeight: 22,
     paddingHorizontal: 12,
     opacity: 0.85,
   },
   button: {
-    backgroundColor: "#10B981", // Vibrant emerald green button
+    backgroundColor: "#10B981",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 30,
@@ -153,9 +152,9 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   buttonText: {
-    color: "#022C22", // Deep forest green text for high contrast
+    color: "#022C22",
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: "PlusJakarta-Bold",
     letterSpacing: 0.5,
   },
 });

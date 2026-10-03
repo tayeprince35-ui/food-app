@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import {
   StatusBar,
   StyleSheet,
@@ -8,7 +7,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useCartStore } from "@/store/cartStore";
+import { router, useLocalSearchParams } from "expo-router"; // replace your router import
+import { useEffect } from "react";
 const COLORS = {
   bg: "#0B0D0C",
   card: "#141715",
@@ -20,6 +21,12 @@ const COLORS = {
 };
 
 export default function OrderPlacedScreen() {
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+const clearCart = useCartStore((s) => s.clearCart);
+
+useEffect(() => {
+  clearCart();
+}, [clearCart]);
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
@@ -36,25 +43,21 @@ export default function OrderPlacedScreen() {
         <Text style={styles.title}>Order Placed!</Text>
 
         <Text style={styles.subtitle}>
-          Your order from{" "}
-          <Text style={styles.highlightText}>Deco's Kitchen</Text> has been
-          {"\n"}
-          Confirmed and is being prepared right now.
-        </Text>
+  Your order has been placed{"\n"}and HeyBite will confirm it shortly.
+</Text>
 
         {/* Order Number Badge */}
         <View style={styles.orderBadge}>
-          <Text style={styles.orderBadgeText}>Order #HB-20483</Text>
-        </View>
+         <Text style={styles.orderBadgeText}>Order #{orderId}</Text></View>
 
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={styles.primaryButton}
             activeOpacity={0.8}
-            onPress={() => {
-              router.push("/TrackOrder");
-            }}
+          onPress={() => {
+  router.push({ pathname: "/TrackOrder", params: { orderId } });
+}}
           >
             <Text style={styles.primaryButtonText}>Track my order</Text>
             <Ionicons

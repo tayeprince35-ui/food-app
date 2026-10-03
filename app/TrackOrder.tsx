@@ -1,88 +1,210 @@
 import GlassBackButton from "@/components/GlassBackButton";
+import { formatDate } from "@/lib/format";
+import { supabase } from "@/lib/supabase";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const TrackOrderScreen = () => {
-  const timelineData = [
-    {
-      id: 1,
-      title: "Order confirmed",
-      subtitle: "HeyBite received your order",
-      time: "9:41 AM",
-      status: "completed",
-      icon: "checkmark",
-    },
-    {
-      id: 2,
-      title: "Restaurant Preparing",
-      subtitle: "In Progress...",
-      status: "active",
-      icon: "silverware-fork-knife",
-      iconType: "material",
-    },
-    {
-      id: 3,
-      title: "Rider on the way",
-      subtitle: "Your rider will pick up the order",
-      status: "waiting",
-      icon: "bike",
-      iconType: "material",
-    },
-    {
-      id: 4,
-      title: "Almost there",
-      subtitle: "Rider is nearby your location",
-      status: "waiting",
-      icon: "location-outline",
-    },
-    {
-      id: 5,
-      title: "Delivered!",
-      subtitle: "Enjoy your meal!",
-      status: "waiting",
-      icon: "checkmark",
-    },
-  ];
+type OrderItem = {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string | null;
+};
 
-  const orderItems = [
-    {
-      id: "1",
-      title: "Jollof + Chicken",
-      desc: "Regular • Extra spicy",
-      qty: "x1",
-      price: "₦2,200",
-      bgColor: "#FF4500",
-      icon: "fast-food",
-    },
-    {
-      id: "2",
-      title: "Beef Suya",
-      desc: "Regular • Extra spicy",
-      qty: "x2",
-      price: "₦2,100",
-      bgColor: "#D2691E",
-      icon: "food-drumstick",
-      iconType: "material",
-    },
-    {
-      id: "3",
-      title: "Chilled Zobo Drinks",
-      desc: "Regular • Extra spicy",
-      qty: "x1",
-      price: "₦400",
-      bgColor: "#1E90FF",
-      icon: "local-drink",
-      iconType: "material",
-    },
-  ];
+type Order = {
+  id: number;
+  status: string;
+  total: number;
+  delivery_address: string;
+  created_at: string;
+  order_items: OrderItem[];
+};
+
+const STATUS_ORDER = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "on_the_way",
+  "delivered",
+];
+
+const TIMELINE = [
+  {
+    title: "Order placed",
+    subtitle: "Waiting for HeyBite to confirm",
+    icon: "receipt-outline",
+  },
+  {
+    title: "Order confirmed",
+    subtitle: "HeyBite received your order",
+    icon: "checkmark",
+  },
+  {
+    title: "Restaurant preparing",
+    subtitle: "In progress...",
+    icon: "silverware-fork-knife",
+    iconType: "material",
+  },
+  {
+    title: "Rider on the way",
+    subtitle: "Your order is on its way",
+    icon: "bike",
+    iconType: "material",
+  },
+  { title: "Delivered!", subtitle: "Enjoy your meal!", icon: "checkmark" },
+];
+
+const STATUS_INFO: Record<
+  string,
+  { badge: string; title: string; subtitle: string; progress: number }
+> = {
+  pending: {
+    badge: "ORDER PLACED",
+    title: "Order placed! 🎉",
+    subtitle: "Waiting for HeyBite to confirm your order.",
+    progress: 0.15,
+  },
+  confirmed: {
+    badge: "ORDER CONFIRMED",
+    title: "Your order is confirmed!",
+    subtitle: "HeyBite will start preparing it shortly.",
+    progress: 0.35,
+  },
+  preparing: {
+    badge: "PREPARING",
+    title: "Your food is being made",
+    subtitle: "The restaurant is preparing your order.",
+    progress: 0.55,
+  },
+  on_the_way: {
+    badge: "ON THE WAY",
+    title: "Your order is on the way!",
+    subtitle: "Your rider is heading to you.",
+    progress: 0.8,
+  },
+  delivered: {
+    badge: "DELIVERED",
+    title: "Delivered!",
+    subtitle: "Enjoy your meal!",
+    progress: 1,
+  },
+  cancelled: {
+    badge: "CANCELLED",
+    title: "Order cancelled",
+    subtitle: "This order was cancelled.",
+    progress: 0,
+  },
+};
+
+const TrackOrderScreen = () => {
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchOrder = useCallback(async () => {
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*, order_items(*)")
+      .eq("id", orderId)
+      .single();
+
+    if (error) console.error("TRACK ORDER ERROR:", error);
+    else setOrder(data as Order);
+    setLoading(false);
+  }, [orderId]);
+
+  useEffect(() => {
+    fetchOrder();
+    const timer = setInterval(fetchOrder, 15000); // refresh every 15s
+    return () => clearInterval(timer);
+  }, [fetchOrder]);
+
+  useEffect(() => {
+    if (!orderId) return;
+
+    const channel = supabase
+      .channel(`order-${orderId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          setOrder((prev) =>
+            prev ? { ...prev, ...(payload.new as Partial<Order>) } : prev,
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderId]);
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#00E676" />
+      </SafeAreaView>
+    );
+  }
+
+  if (!order) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <Text style={{ color: "#FFF" }}>Order not found.</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const info = STATUS_INFO[order.status] ?? STATUS_INFO.pending;
+  const currentIndex = STATUS_ORDER.indexOf(order.status);
+  const itemCount = order.order_items.reduce((sum, i) => sum + i.quantity, 0);
+
+  const timelineData = TIMELINE.map((step, i) => ({
+    ...step,
+    id: i,
+    status:
+      currentIndex === -1
+        ? "waiting"
+        : i < currentIndex ||
+            (i === currentIndex && order.status === "delivered")
+          ? "completed"
+          : i === currentIndex
+            ? "active"
+            : "waiting",
+    time: i === 0 ? formatDate(order.created_at) : undefined,
+  }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -106,24 +228,30 @@ const TrackOrderScreen = () => {
           <View style={styles.cardHeader}>
             <View style={styles.badge}>
               <View style={styles.badgeDot} />
-              <Text style={styles.badgeText}>ORDER CONFIRMED</Text>
+              <Text style={styles.badgeText}>{info.badge}</Text>
             </View>
-            <Text style={styles.orderId}>#HB-20283</Text>
+            <Text style={styles.orderId}>#{order.id}</Text>
           </View>
 
-          <Text style={styles.statusTitle}>Your order is confirmed! 🎉</Text>
-          <Text style={styles.statusSubtitle}>
-            Deco's Kitchen has received your order and will start preparing it
-            shortly.
-          </Text>
+          <Text style={styles.statusTitle}>{info.title}</Text>
+          <Text style={styles.statusSubtitle}>{info.subtitle}</Text>
 
           <View style={styles.progressContainer}>
             <View style={styles.progressTextRow}>
               <Text style={styles.progressLabel}>Order placed</Text>
-              <Text style={styles.progressLabel}>15 min remaining</Text>
+              <Text style={styles.progressLabel}>
+                {order.status === "delivered"
+                  ? "Delivered"
+                  : "Estimated 10-20 min"}
+              </Text>
             </View>
             <View style={styles.progressBarBackground}>
-              <View style={styles.progressBarFill} />
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${info.progress * 100}%` },
+                ]}
+              />
             </View>
           </View>
         </View>
@@ -182,61 +310,32 @@ const TrackOrderScreen = () => {
           })}
         </View>
 
-        {/* Rider Card */}
-        <View style={styles.riderCard}>
-          <View style={styles.riderInfo}>
-            <View style={styles.avatarContainer}>
-              <Ionicons name="person" size={24} color="#FFB800" />
-            </View>
-            <View>
-              <Text style={styles.riderLabel}>Rider</Text>
-              <Text style={styles.riderName}>Emeka</Text>
-            </View>
-          </View>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Ionicons name="call" size={18} color="#00E676" />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.iconButton, styles.chatButton]}>
-              <Ionicons name="chatbubble" size={18} color="#8E8E93" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Order Details Card */}
         <View style={styles.card}>
           <View style={styles.orderHeader}>
             <Text style={styles.orderSectionTitle}>Your Order</Text>
-            <Text style={styles.itemCount}>3 item</Text>
+            <Text style={styles.itemCount}>
+              {itemCount} {itemCount === 1 ? "item" : "items"}
+            </Text>
           </View>
 
-          {orderItems.map((item) => (
+          {order.order_items.map((item) => (
             <View key={item.id} style={styles.orderItemRow}>
-              <View
-                style={[
-                  styles.itemImageContainer,
-                  { backgroundColor: item.bgColor },
-                ]}
-              >
-                {item.iconType === "material" ? (
-                  <MaterialCommunityIcons
-                    name={item.icon as any}
-                    size={22}
-                    color="#FFFFFF"
-                  />
-                ) : (
-                  <Ionicons name={item.icon as any} size={22} color="#FFFFFF" />
-                )}
-              </View>
+              <Image
+                source={{ uri: item.image ?? undefined }}
+                style={styles.itemImageContainer}
+                contentFit="cover"
+              />
 
               <View style={styles.itemDetails}>
-                <Text style={styles.itemName}>{item.title}</Text>
-                <Text style={styles.itemDesc}>{item.desc}</Text>
+                <Text style={styles.itemName}>{item.name}</Text>
               </View>
 
               <View style={styles.itemPricing}>
-                <Text style={styles.itemQty}>{item.qty}</Text>
-                <Text style={styles.itemPrice}>{item.price}</Text>
+                <Text style={styles.itemQty}>x{item.quantity}</Text>
+                <Text style={styles.itemPrice}>
+                  ₦{(item.price * item.quantity).toLocaleString()}
+                </Text>
               </View>
             </View>
           ))}
@@ -245,7 +344,9 @@ const TrackOrderScreen = () => {
 
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>₦4,300</Text>
+            <Text style={styles.totalValue}>
+              ₦{order.total.toLocaleString()}
+            </Text>
           </View>
         </View>
 
@@ -264,18 +365,12 @@ const TrackOrderScreen = () => {
           </View>
           <Feather name="arrow-right" size={20} color="#FFFFFF" />
         </TouchableOpacity>
-
-        {/* Cancel Payment Button */}
-        <TouchableOpacity style={styles.cancelButton}>
-          <Text style={styles.cancelText}>✕ Cancel Payment</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default TrackOrderScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -305,7 +400,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
   helpButton: {
     borderWidth: 1,
@@ -317,7 +412,7 @@ const styles = StyleSheet.create({
   helpText: {
     color: "#00E676",
     fontSize: 14,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
 
   /* Card Base */
@@ -355,16 +450,17 @@ const styles = StyleSheet.create({
   badgeText: {
     color: "#00E676",
     fontSize: 10,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
   orderId: {
     color: "#8E8E93",
     fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
   },
   statusTitle: {
     color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
     marginBottom: 6,
   },
   statusSubtitle: {
@@ -372,6 +468,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     marginBottom: 16,
+    fontFamily: "PlusJakarta-Regular",
   },
   progressContainer: {
     marginTop: 4,
@@ -384,6 +481,7 @@ const styles = StyleSheet.create({
   progressLabel: {
     color: "#8E8E93",
     fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
   },
   progressBarBackground: {
     height: 4,
@@ -401,7 +499,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
     marginTop: 12,
     marginBottom: 12,
   },
@@ -448,17 +546,19 @@ const styles = StyleSheet.create({
   timelineTitle: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
   timelineSubtitle: {
     color: "#8E8E93",
     fontSize: 12,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
   timelineTime: {
     color: "#00E676",
     fontSize: 11,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   /* Rider Card */
@@ -489,12 +589,13 @@ const styles = StyleSheet.create({
   riderLabel: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
   riderName: {
     color: "#8E8E93",
     fontSize: 12,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
   actionButtons: {
     flexDirection: "row",
@@ -522,11 +623,12 @@ const styles = StyleSheet.create({
   orderSectionTitle: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
   itemCount: {
     color: "#00E676",
     fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
   },
   orderItemRow: {
     flexDirection: "row",
@@ -547,12 +649,13 @@ const styles = StyleSheet.create({
   itemName: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
   itemDesc: {
     color: "#8E8E93",
     fontSize: 12,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
   itemPricing: {
     flexDirection: "row",
@@ -562,11 +665,12 @@ const styles = StyleSheet.create({
     color: "#00E676",
     fontSize: 12,
     marginRight: 8,
+    fontFamily: "PlusJakarta-Regular",
   },
   itemPrice: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
   divider: {
     height: 1,
@@ -581,12 +685,12 @@ const styles = StyleSheet.create({
   totalLabel: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
   totalValue: {
     color: "#00E676",
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "PlusJakarta-Bold",
   },
 
   /* Support Card */
@@ -609,12 +713,13 @@ const styles = StyleSheet.create({
   supportTitle: {
     color: "#FFFFFF",
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: "PlusJakarta-SemiBold",
   },
   supportSubtitle: {
     color: "#8E8E93",
     fontSize: 11,
     marginTop: 2,
+    fontFamily: "PlusJakarta-Regular",
   },
 
   /* Cancel Button */
@@ -629,6 +734,6 @@ const styles = StyleSheet.create({
   cancelText: {
     color: "#FF3B30",
     fontSize: 14,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
 });

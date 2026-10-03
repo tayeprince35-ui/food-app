@@ -83,7 +83,12 @@ export default function TabsLayout() {
           href: null,
         }}
       />
-
+   <Tabs.Screen
+        name="search"
+        options={{
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="cart"
         options={{
@@ -95,11 +100,11 @@ export default function TabsLayout() {
       />
 
          <Tabs.Screen
-        name="search"
+        name="order-detail"
         options={{
-          title: "search",
+          title: "orders",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="clipboard" size={size} color={color} />
+            <Ionicons name="business-outline" size={size} color={color} />
           ),
         }}
       />

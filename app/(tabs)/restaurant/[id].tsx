@@ -272,31 +272,32 @@ const RestaurantScreen = () => {
             );
           })}
         </View>
-      </ScrollView>
+        {cart.length > 0 && (
+          <View style={styles.floatingCartWrapper}>
+            <TouchableOpacity
+              style={styles.floatingCartButton}
+              onPress={() => router.push("/cart")}
+              activeOpacity={0.85}
+            >
+              <View style={styles.cartLeft}>
+                <View style={styles.cartCountBadge}>
+                  <Text style={styles.cartCountText}>{cart.length}</Text>
+                </View>
 
-      {cart.length > 0 && (
-        <View style={styles.floatingCartWrapper}>
-          <TouchableOpacity
-            style={styles.floatingCartButton}
-            onPress={() => router.push("/cart")}
-            activeOpacity={0.85}
-          >
-            <View style={styles.cartLeft}>
-              <View style={styles.cartCountBadge}>
-                <Text style={styles.cartCountText}>{cart.length}</Text>
+                <Text style={styles.cartButtonText}>View cart</Text>
               </View>
 
-              <Text style={styles.cartButtonText}>View cart</Text>
-            </View>
+              <View style={styles.cartRight}>
+                <Text style={styles.cartTotalText}>
+                  {formatNaira(cartTotal)}
+                </Text>
 
-            <View style={styles.cartRight}>
-              <Text style={styles.cartTotalText}>{formatNaira(cartTotal)}</Text>
-
-              <Ionicons name="arrow-forward" size={18} color="#FFF" />
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
+                <Ionicons name="arrow-forward" size={18} color="#FFF" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 };
@@ -562,12 +563,10 @@ const styles = StyleSheet.create({
   },
 
   floatingCartWrapper: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: "#121212",
   },
-
   floatingCartButton: {
     backgroundColor: "#00A651",
     flexDirection: "row",

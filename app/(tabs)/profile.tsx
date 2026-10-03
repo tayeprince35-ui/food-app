@@ -1,8 +1,11 @@
 import CustomAlert from "@/components/CustomAlert";
+import { pickAndUploadAvatar } from "@/lib/avatar";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useState } from "react";
+import { Image } from "expo-image";
 import {
   ActivityIndicator,
+  Alert,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -17,6 +20,7 @@ import GlassBackButton from "@/components/GlassBackButton";
 import { useAuth } from "@/lib/AuthContext";
 import type { Href } from "expo-router";
 import { router } from "expo-router";
+import { useState } from "react";
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
 type MenuItemProps = {
@@ -48,6 +52,29 @@ const ProfileScreen = () => {
     isGuest,
   } = useAuth();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+  const avatarUrl = localAvatar ?? userData?.user_metadata?.avatar_url ?? null;
+  const [uploading, setUploading] = useState(false);
+
+  const onChangeAvatar = async () => {
+    if (isGuest || !userData) {
+      router.push("/(auth)/login");
+      return;
+    }
+    try {
+      setUploading(true);
+      const url = await pickAndUploadAvatar(userData.id);
+
+      if (url) setLocalAvatar(url);
+    } catch (e) {
+      console.error("AVATAR ERROR:", e);
+      const msg = (e as Error).message;
+      if (Platform.OS === "web") window.alert(msg);
+      else Alert.alert("Upload failed", msg);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const username = isGuest
     ? "Guest"
@@ -115,9 +142,29 @@ const ProfileScreen = () => {
       >
         {/* User Info Section */}
         <View style={styles.userInfoSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{avatarLetter}</Text>
-          </View>
+          <TouchableOpacity
+            style={{ marginRight: 15 }}
+            onPress={onChangeAvatar}
+            disabled={uploading}
+          >
+            <View style={styles.avatar}>
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarText}>{avatarLetter}</Text>
+              )}
+              {uploading && (
+                <View style={styles.avatarOverlay}>
+                  <ActivityIndicator color="#FFF" />
+                </View>
+              )}
+            </View>
+            {!isGuest && (
+              <View style={styles.cameraBadge}>
+                <Ionicons name="camera" size={12} color="#FFF" />
+              </View>
+            )}
+          </TouchableOpacity>
 
           <View style={styles.userDetails}>
             <Text style={styles.userName}>{username}</Text>
@@ -201,7 +248,7 @@ const ProfileScreen = () => {
             subtitle={
               isGuest ? "Sign in required" : "Cash on delivery, wallet, bank"
             }
-            href="/payment"
+            href="/PayOnlineScreen"
             disabled={isGuest}
           />
         </View>
@@ -372,6 +419,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
+
+  avatarImage: { width: "100%", height: "100%" },
+  avatarOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cameraBadge: {
+    position: "absolute",
+    bottom: -4,
+    right: -4,
+    backgroundColor: "#34C759",
+    borderRadius: 10,
+    padding: 4,
+  },
   backButton: { padding: 5 },
   headerTitle: {
     color: "#FFF",
@@ -392,7 +455,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2E8B57",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 15,
+    overflow: "hidden", // add this
   },
   avatarText: { color: "#FFF", fontSize: 28, fontFamily: "PlusJakarta-Bold" },
   userDetails: { flex: 1 },

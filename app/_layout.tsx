@@ -4,6 +4,7 @@ import {
   PlusJakartaSans_600SemiBold,
   PlusJakartaSans_700Bold,
 } from "@expo-google-fonts/plus-jakarta-sans";
+import { PaystackProvider } from "react-native-paystack-webview";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { Slot, useRouter, useSegments } from "expo-router";
@@ -115,11 +116,15 @@ function InitialLayout() {
     </>
   );
 }
-
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <InitialLayout />
-    </AuthProvider>
+    <PaystackProvider
+      publicKey={process.env.EXPO_PUBLIC_PAYSTACK_PUBLIC_KEY!}
+      currency="NGN"
+    >
+      <AuthProvider>
+        <InitialLayout />
+      </AuthProvider>
+    </PaystackProvider>
   );
 }

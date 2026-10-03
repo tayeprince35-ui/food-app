@@ -36,7 +36,7 @@ export default function FoodDetails() {
 
   if (!food) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0F1115] items-center justify-center px-6">
+      <SafeAreaView className="flex-1 bg-[#0F1115] items-center justify-center px-6 ">
         <Ionicons name="fast-food-outline" size={60} color="#777B84" />
 
         <Text style={typography.bold} className="text-white text-xl mt-5">
@@ -63,7 +63,7 @@ export default function FoodDetails() {
   }
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-[#0F1115]">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-[#0F1115] ">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -278,7 +278,7 @@ export default function FoodDetails() {
           {/* ADD TO CART / QUANTITY SELECTOR                          */}
           {/* ------------------------------------------------------ */}
 
-          <View className="mt-6">
+          <View className="mt-6 mb-24">
             {itemQuantity > 0 ? (
               <QuantitySelector
                 quantity={itemQuantity}

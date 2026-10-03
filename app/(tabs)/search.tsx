@@ -8,6 +8,8 @@ import SearchResultsHeader from "@/components/SearchResultsHeader";
 import SearchSort, { SortOption } from "@/components/SearchSort";
 import SearchTabs from "@/components/SearchTabs";
 import { typography } from "@/constants/typography";
+
+import { Ionicons } from "@expo/vector-icons";
 import POPULAR_ITEMS, {
   Foods,
   RESTAURANTS_AND_MEALS,
@@ -113,7 +115,9 @@ export default function Search(): React.JSX.Element {
             <View
               style={[styles.searchContainer, focused && styles.inputFocused]}
             >
-              <Text style={styles.searchIcon}>⌕</Text>
+            
+              <Ionicons name="search" size={18} color="#f8f6f6" style={styles.searchIcon}/>
+
               <TextInput
                 value={query}
                 onChangeText={setQuery}
@@ -272,12 +276,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#1A1A1A",
   },
   searchIcon: {
-    color: "#d1d1d1",
-    fontSize: 30,
     lineHeight: 30,
-    transform: [{ rotate: "-20deg" }],
+    transform: [{ rotate: "80deg" }],
     marginRight: 8,
-    marginTop: -4,
+    marginTop: -2,
   },
   searchInput: {
     flex: 1,

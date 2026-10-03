@@ -1,16 +1,16 @@
-import { useEffect } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from "react";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
 import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withDelay,
-    withRepeat,
-    withSequence,
-    withTiming,
-} from 'react-native-reanimated';
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 // Configuration for the bars to match the image shape
 // We use an array to define the max height of each bar
@@ -27,9 +27,15 @@ const BAR_DATA = [
 const BAR_WIDTH = 6;
 const BAR_GAP = 6;
 const MIN_HEIGHT = 15; // The height the bars shrink down to
-const COLOR_GREEN = '#00C851'; // Approximate green from image
+const COLOR_GREEN = "#00C851"; // Approximate green from image
 
-const AnimatedBar = ({ maxHeight, delay }: {maxHeight:number, delay: number} ) => {
+const AnimatedBar = ({
+  maxHeight,
+  delay,
+}: {
+  maxHeight: number;
+  delay: number;
+}) => {
   const height = useSharedValue(maxHeight);
 
   useEffect(() => {
@@ -45,11 +51,11 @@ const AnimatedBar = ({ maxHeight, delay }: {maxHeight:number, delay: number} ) =
           withTiming(maxHeight, {
             duration: 400,
             easing: Easing.inOut(Easing.ease),
-          })
+          }),
         ),
         -1, // Infinite loop
-        true // Reverse (though sequence handles it, this ensures smoothness)
-      )
+        true, // Reverse (though sequence handles it, this ensures smoothness)
+      ),
     );
   }, [height, maxHeight, delay]);
 
@@ -66,7 +72,6 @@ export default function LoadingScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
-        
         {/* The Equalizer Icon */}
         <View style={styles.iconContainer}>
           {BAR_DATA.map((bar, index) => (
@@ -84,22 +89,21 @@ export default function LoadingScreen() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f', // Dark background
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#0f0f0f", // Dark background
+    alignItems: "center",
+    justifyContent: "center",
   },
   contentContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: -50, // Slight visual adjustment
   },
   iconContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end', // Align bars to the bottom
+    flexDirection: "row",
+    alignItems: "flex-end", // Align bars to the bottom
     height: 100, // Container height taller than the tallest bar
     marginBottom: 20,
   },
@@ -110,10 +114,9 @@ const styles = StyleSheet.create({
     marginHorizontal: BAR_GAP / 2,
   },
   loadingText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: 'bold',
+    fontFamily: "PlusJakarta-Bold",
     letterSpacing: 2, // Space out the letters like in the image
-    fontFamily: 'System', // Or a custom font if you have one
   },
 });

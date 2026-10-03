@@ -1,10 +1,13 @@
 import GlassBackButton from "@/components/GlassBackButton";
 import { useCartTotal } from "@/hooks/useCartTotal";
+import { placeOrder } from "@/lib/orders";
 import { useCartStore } from "@/store/cartStore";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Alert, Platform } from "react-native";
+
 import {
   ScrollView,
   StatusBar,
@@ -36,17 +39,57 @@ const NOTE_CHIPS = [
 ];
 
 const naira = (n: number) => `₦${n.toLocaleString()}`;
+const DELIVERY_ADDRESS =
+  "No. 12 Uromi Road, Ekpoma, Near AAU main gate Edo State";
 
+const showError = (msg: string) =>
+  Platform.OS === "web" ? window.alert(msg) : Alert.alert("Order failed", msg);
 export default function CheckoutScreen() {
   const [note, setNote] = useState("");
   const [activeChip, setActiveChip] = useState("Call on arrival");
   const [paymentMethod, setPaymentMethod] = useState<"online" | "wallet">(
     "online",
   );
-
   // --- WIRED UP TO CART STORE ---
   const { cart, removeFromCart } = useCartStore();
   const total = useCartTotal();
+  const [placing, setPlacing] = useState(false);
+  const [orderId, setOrderId] = useState<number | null>(null);
+
+  // cart changed after an order was created -> make a fresh order next time
+  useEffect(() => {
+    setOrderId(null);
+  }, [cart]);
+
+  const handlePlaceOrder = async () => {
+    if (placing) return;
+    if (cart.length === 0) {
+      showError("Your cart is empty.");
+      return;
+    }
+    try {
+      setPlacing(true);
+      const id =
+        orderId ??
+        (await placeOrder({
+          items: cart,
+          total: totalPayment,
+          address: DELIVERY_ADDRESS,
+          paymentMethod: paymentMethod,
+          note: [activeChip, note.trim()].filter(Boolean).join(" - "),
+        }));
+      setOrderId(id);
+      router.push({
+        pathname: "/payment",
+        params: { amount: totalPayment.toString(), orderId: String(id) },
+      });
+    } catch (e) {
+      console.error("PLACE ORDER ERROR:", e);
+      showError((e as Error).message);
+    } finally {
+      setPlacing(false);
+    }
+  };
 
   // Calculate total number of items (summing quantities)
   const totalItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -72,11 +115,11 @@ export default function CheckoutScreen() {
 
         {/* Progress */}
         <View style={styles.progressRow}>
-          <StepDot label="CART" state="active" number={1} />
+          <StepDot label="CART" state="done" />
           <View
             style={[styles.progressLine, { backgroundColor: COLORS.green }]}
           />
-          <StepDot label="CHECKOUT" state="done" />
+          <StepDot label="CHECKOUT" state="pending" number={2} />
           <View style={styles.progressLine} />
           <StepDot label="TRACKING" state="pending" number={3} />
         </View>
@@ -228,20 +271,18 @@ export default function CheckoutScreen() {
       {/* Place order */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.placeOrderBtn}
-          onPress={() =>
-            router.push({
-              pathname: "/payment",
-              params: { amount: totalPayment.toString() },
-            })
-          }
+          style={[styles.placeOrderBtn, placing && { opacity: 0.6 }]}
+          onPress={handlePlaceOrder}
+          disabled={placing}
         >
           <View>
-            <Text style={styles.placeOrderTitle}>Place Order</Text>
+            <Text style={styles.placeOrderTitle}>
+              {placing ? "Placing order..." : "Place Order"}
+            </Text>
             <Text style={styles.placeOrderSubtitle}>Pay Online</Text>
           </View>
           <View style={styles.placeOrderRight}>
-            <Text style={styles.placeOrderTitle}>({naira(total)})</Text>
+            <Text style={styles.placeOrderTitle}>({naira(totalPayment)})</Text>
             <Ionicons
               name="arrow-forward"
               size={18}
