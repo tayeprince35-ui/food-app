@@ -1,5 +1,8 @@
+import { useAuth } from "@/lib/AuthContext";
+import { normalizePhone } from "@/lib/phone";
 import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -16,15 +19,11 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { z } from "zod";
 
-import CountryPicker, {
-  Country,
-} from "@/components/CountryPicker";
+import CountryPicker, { Country } from "@/components/CountryPicker";
 
 import signupSchema from "../../lib/schemas/signupSchema";
 import { supabase } from "../../lib/supabase";
@@ -118,6 +117,8 @@ export default function SignUpScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  const { continueAsGuest } = useAuth();
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     name: "Nigeria",
     code: "NG",
@@ -128,6 +129,9 @@ export default function SignUpScreen() {
   const {
     control,
     handleSubmit,
+    setValue,
+    getValues,
+    trigger,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -136,7 +140,7 @@ export default function SignUpScreen() {
       firstName: "",
       lastName: "",
       email: "",
-      country: "Nigeria",
+      country: "NG",
       phoneNumber: "",
       password: "",
       referralCode: "",
@@ -162,8 +166,9 @@ export default function SignUpScreen() {
 
             country: formData.country,
 
-            phone_number: formData.phoneNumber.trim(),
-
+            phone_number:
+              normalizePhone(formData.phoneNumber, formData.country) ??
+              formData.phoneNumber.trim(),
             referral_code: formData.referralCode?.trim() || null,
           },
         },
@@ -236,10 +241,7 @@ export default function SignUpScreen() {
               <Feather name="chevron-left" size={27} color="#FFFFFF" />
             </Pressable>
 
-            <Pressable
-              style={styles.guestButton}
-              onPress={() => router.replace("/(tabs)")}
-            >
+            <Pressable style={styles.guestButton} onPress={continueAsGuest}>
               <Text style={styles.guestText}>Sign in as guest</Text>
             </Pressable>
           </View>
@@ -347,6 +349,8 @@ export default function SignUpScreen() {
                   value={selectedCountry}
                   onSelect={(country) => {
                     setSelectedCountry(country);
+                    setValue("country", country.code);
+                    if (getValues("phoneNumber")) trigger("phoneNumber");
                   }}
                 />
               </View>

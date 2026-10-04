@@ -4,11 +4,9 @@ import {
   PlusJakartaSans_600SemiBold,
   PlusJakartaSans_700Bold,
 } from "@expo-google-fonts/plus-jakarta-sans";
-import { PaystackProvider } from "react-native-paystack-webview";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { Slot, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
 import Toast, {
   BaseToast,
   ErrorToast,
@@ -18,7 +16,10 @@ import LoadingScreen from "./../components/LoadingScreen";
 
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import "./../global.css";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 
+const INTRO_KEY = "hasSeenIntro";
 export const toastConfig: ToastConfig = {
   success: (props) => (
     <BaseToast
@@ -79,6 +80,8 @@ function InitialLayout() {
   const { session, isLoading, isGuest } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [introSeen, setIntroSeen] = useState<boolean | null>(null);
+
 
   const [fontsLoaded, fontError] = useFonts({
     "PlusJakarta-Regular": PlusJakartaSans_400Regular,
@@ -89,19 +92,33 @@ function InitialLayout() {
     ...MaterialCommunityIcons.font,
   });
 
+    // load the flag once
   useEffect(() => {
-    if (isLoading) return;
+    AsyncStorage.getItem(INTRO_KEY)
+      .then((v) => setIntroSeen(v === "true"))
+      .catch(() => setIntroSeen(false));
+  }, []);
+
+
+  useEffect(() => {
+    if (session && introSeen === false) {
+      setIntroSeen(true);
+      AsyncStorage.setItem(INTRO_KEY, "true").catch(() => {});
+    }
+  }, [session, introSeen]);
+
+  useEffect(() => {
+    if (isLoading || introSeen === null) return;
 
     const inAuthGroup = segments[0] === "(auth)";
 
     if (session && inAuthGroup) {
       router.replace("/(tabs)");
-    } else if (isGuest && inAuthGroup) {
-      router.replace("/DeliveryAddressScreen");
     } else if (!session && !isGuest && !inAuthGroup) {
-      router.replace("/splash");
+      router.replace(introSeen ? "/(auth)/login" : "/splash");
     }
-  }, [session, isGuest, isLoading, segments]);
+  }, [session, isGuest, isLoading, segments, introSeen]);
+
   if (isLoading || (!fontsLoaded && !fontError)) {
     return <LoadingScreen />;
   }
@@ -118,13 +135,10 @@ function InitialLayout() {
 }
 export default function RootLayout() {
   return (
-    <PaystackProvider
-      publicKey={process.env.EXPO_PUBLIC_PAYSTACK_PUBLIC_KEY!}
-      currency="NGN"
-    >
+
       <AuthProvider>
         <InitialLayout />
       </AuthProvider>
-    </PaystackProvider>
+  
   );
 }

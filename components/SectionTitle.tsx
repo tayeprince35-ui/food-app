@@ -1,49 +1,6 @@
 import { typography } from "@/constants/typography";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-const recentSearches: RecentSearch[] = [
-  {
-    emoji: "🍛",
-    title: "Jollof rice near me",
-    subtitle: "Restaurant • 2 hours ago",
-  },
-  {
-    emoji: "🌯",
-    title: "Shawarma",
-    subtitle: "Dish • Yesterday",
-  },
-  {
-    emoji: "🍔",
-    title: "Burger spot",
-    subtitle: "Restaurant • 3 days ago",
-  },
-];
-interface RecentSearch {
-  emoji: string;
-  title: string;
-  subtitle: string;
-}
+import {  StyleSheet, Text, View } from "react-native";
 
-export default function RecentItem({ item }: { item: RecentSearch }) {
-  return (
-    <Pressable style={styles.recentItem}>
-      <View style={styles.recentEmojiBox}>
-        <Text style={styles.recentEmoji}>{item.emoji}</Text>
-      </View>
-
-      <View style={styles.recentText}>
-        <Text style={[typography.semiBold, styles.recentTitle]}>
-          {item.title}
-        </Text>
-
-        <Text style={[typography.regular, styles.recentSubtitle]}>
-          {item.subtitle}
-        </Text>
-      </View>
-
-      <Text style={styles.closeIcon}>×</Text>
-    </Pressable>
-  );
-}
 export function SectionTitle({
   icon,
   children,

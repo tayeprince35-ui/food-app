@@ -86,7 +86,9 @@ const Logo = require("../../assets/icons/logo.png");
 /* -------------------------------------------------------------------------- */
 /* HEADER                                                                     */
 /* -------------------------------------------------------------------------- */
-
+const hour = new Date().getHours();
+const greeting =
+  hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 function TopHeader({ user }: { user: any }) {
   const avatarUrl: string | undefined = user?.user_metadata?.avatar_url;
   const initial =
@@ -139,13 +141,13 @@ function Greeting({ user }: { user: any }) {
   return (
     <View className="px-5 mt-4">
       <Text style={typography.regular} className="text-[#A0A0A0] text-sm">
-        Good afternoon 👋
+       { greeting} 👋
       </Text>
 
       <Text style={typography.bold} className="text-2xl text-white mt-1">
         What are <Text className="text-[#34C759]">craving</Text>
         {"\n"}
-        today, {user?.user_metadata?.firstName || "there"}?
+        today, {user?.user_metadata?.first_name || "there"}?
       </Text>
     </View>
   );

@@ -89,14 +89,6 @@ const ProfileScreen = () => {
   const avatarLetter = isGuest
     ? "G"
     : userData?.user_metadata?.first_name?.charAt(0).toUpperCase() || "?";
-
-  // Hardcoded values for UI only
-  const user = {
-    name: "Godfrey Ajayi",
-    email: "godfreyajayi25@gmail.com",
-    balance: "4,300.00",
-  };
-
   const handleLogout = () => {
     if (isGuest) {
       router.push("/(auth)/login");
@@ -197,7 +189,7 @@ const ProfileScreen = () => {
           </View>
 
           <Text style={styles.walletBalance}>
-            {isGuest ? "₦0.00" : `₦${user.balance}`}
+            {isGuest ? "₦0.00" : `₦4200`}
           </Text>
 
           <Text style={styles.walletSubtext}>
@@ -237,6 +229,7 @@ const ProfileScreen = () => {
             title="Saved address"
             subtitle={isGuest ? "Sign in required" : "Home"}
             disabled={isGuest}
+            href="/SavedAddressesScreen"
           />
 
           <View style={styles.divider} />

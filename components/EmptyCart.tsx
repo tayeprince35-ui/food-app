@@ -1,9 +1,9 @@
 import {
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Svg, { Circle, G, Path, Rect } from "react-native-svg";
 
@@ -15,7 +15,12 @@ const { width } = Dimensions.get("window");
  * Dependencies:
  *   npm install react-native-svg
  */
-export default function EmptyCart({ onPressShopNow }) {
+
+interface Props {
+  onPressShopNow: () => void;
+}
+
+export default function EmptyCart({ onPressShopNow }: Props) {
   return (
     <View style={styles.container}>
       {/* Visual Illustration Header */}
@@ -95,7 +100,8 @@ export default function EmptyCart({ onPressShopNow }) {
       </TouchableOpacity>
     </View>
   );
-}const styles = StyleSheet.create({
+}
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "transparent",

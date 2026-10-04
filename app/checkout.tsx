@@ -4,9 +4,11 @@ import { placeOrder } from "@/lib/orders";
 import { useCartStore } from "@/store/cartStore";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useEffect, useCallback, useState} from "react";
 import { Alert, Platform } from "react-native";
+
+import { supabase } from "@/lib/supabase";
 
 import {
   ScrollView,
@@ -18,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/lib/AuthContext";
 
 const COLORS = {
   bg: "#0B0D0C",
@@ -39,9 +42,24 @@ const NOTE_CHIPS = [
 ];
 
 const naira = (n: number) => `₦${n.toLocaleString()}`;
-const DELIVERY_ADDRESS =
-  "No. 12 Uromi Road, Ekpoma, Near AAU main gate Edo State";
+type SavedAddress = {
+  id: number;
+  label: string;
+  address: string;
+  landmark: string | null;
+  phone: string | null;
+  is_default: boolean;
+};
 
+// the order stores the address as text, so old orders never change if the user edits an address later
+const addressText = (a: SavedAddress) =>
+  [
+    `${a.label}: ${a.address}`,
+    a.landmark ? `Landmark: ${a.landmark}` : null,
+    a.phone ? `Phone: ${a.phone}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
 const showError = (msg: string) =>
   Platform.OS === "web" ? window.alert(msg) : Alert.alert("Order failed", msg);
 export default function CheckoutScreen() {
@@ -50,23 +68,67 @@ export default function CheckoutScreen() {
   const [paymentMethod, setPaymentMethod] = useState<"online" | "wallet">(
     "online",
   );
-  // --- WIRED UP TO CART STORE ---
+  
+const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+const [selectedId, setSelectedId] = useState<number | null>(null);
+const [pickingAddress, setPickingAddress] = useState(false);
+
+// reload every time the screen is shown, so a newly added address appears
+useFocusEffect(
+  useCallback(() => {
+    let active = true;
+    supabase
+      .from("addresses")
+      .select("id, label, address, landmark, phone, is_default")
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          console.error("ADDRESSES ERROR:", error);
+          return;
+        }
+        const list = (data ?? []) as SavedAddress[];
+        setAddresses(list);
+        // keep the current choice if it still exists, otherwise use the default
+        setSelectedId((prev) =>
+          list.some((a) => a.id === prev) ? prev : (list[0]?.id ?? null),
+        );
+      });
+    return () => {
+      active = false;
+    };
+  }, []),
+);
+
+const selectedAddress = addresses.find((a) => a.id === selectedId) ?? null;
+const { user } = useAuth()
   const { cart, removeFromCart } = useCartStore();
   const total = useCartTotal();
   const [placing, setPlacing] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
 
   // cart changed after an order was created -> make a fresh order next time
-  useEffect(() => {
-    setOrderId(null);
-  }, [cart]);
+ useEffect(() => {
+  setOrderId(null);
+}, [cart, selectedId]);
 
   const handlePlaceOrder = async () => {
+    if (!user) {
+  router.push("/(auth)/login");
+  return;
+}
     if (placing) return;
     if (cart.length === 0) {
       showError("Your cart is empty.");
       return;
     }
+
+    if (!selectedAddress) {
+  showError("Add a delivery address first.");
+  router.push("/SavedAddressesScreen");
+  return;
+}
     try {
       setPlacing(true);
       const id =
@@ -74,7 +136,7 @@ export default function CheckoutScreen() {
         (await placeOrder({
           items: cart,
           total: totalPayment,
-          address: DELIVERY_ADDRESS,
+address: addressText(selectedAddress),
           paymentMethod: paymentMethod,
           note: [activeChip, note.trim()].filter(Boolean).join(" - "),
         }));
@@ -125,27 +187,78 @@ export default function CheckoutScreen() {
         </View>
 
         {/* Delivery address */}
-        <SectionHeader title="Delivery address" action="Change" />
-        <View style={[styles.card, styles.cardSelected, styles.row]}>
-          <Ionicons
-            name="location"
-            size={20}
-            color={COLORS.green}
-            style={{ marginRight: 10 }}
-          />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>No. 12 Uromi Road, Ekpoma</Text>
-            <Text style={styles.cardSubtitle}>
-              Near AAU main gate Edo State
-            </Text>
-          </View>
-          <Ionicons name="checkmark-circle" size={20} color={COLORS.green} />
-        </View>
+       <SectionHeader
+  title="Delivery address"
+  action={addresses.length > 1 ? (pickingAddress ? "Done" : "Change") : undefined}
+  onActionPress={() => setPickingAddress((p) => !p)}
+/>
 
-        <TouchableOpacity style={styles.addAddressBtn}>
-          <Ionicons name="add" size={18} color={COLORS.text} />
-          <Text style={styles.addAddressText}>Add a new address</Text>
-        </TouchableOpacity>
+{selectedAddress ? (
+  <View style={[styles.card, styles.cardSelected, styles.row]}>
+    <Ionicons
+      name="location"
+      size={20}
+      color={COLORS.green}
+      style={{ marginRight: 10 }}
+    />
+    <View style={{ flex: 1 }}>
+      <Text style={styles.cardTitle}>
+        {selectedAddress.label}: {selectedAddress.address}
+      </Text>
+      {selectedAddress.landmark ? (
+        <Text style={styles.cardSubtitle}>{selectedAddress.landmark}</Text>
+      ) : null}
+    </View>
+    <Ionicons name="checkmark-circle" size={20} color={COLORS.green} />
+  </View>
+) : (
+  <View style={[styles.card, styles.row]}>
+    <Ionicons
+      name="location-outline"
+      size={20}
+      color={COLORS.subtext}
+      style={{ marginRight: 10 }}
+    />
+    <Text style={styles.cardSubtitle}>No delivery address yet</Text>
+  </View>
+)}
+
+{pickingAddress &&
+  addresses
+    .filter((a) => a.id !== selectedId)
+    .map((a) => (
+      <TouchableOpacity
+        key={a.id}
+        style={[styles.card, styles.row, { marginTop: 10 }]}
+        onPress={() => {
+          setSelectedId(a.id);
+          setPickingAddress(false);
+        }}
+      >
+        <Ionicons
+          name="location-outline"
+          size={20}
+          color={COLORS.subtext}
+          style={{ marginRight: 10 }}
+        />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.cardTitle}>
+            {a.label}: {a.address}
+          </Text>
+          {a.landmark ? (
+            <Text style={styles.cardSubtitle}>{a.landmark}</Text>
+          ) : null}
+        </View>
+      </TouchableOpacity>
+    ))}
+
+<TouchableOpacity
+  style={styles.addAddressBtn}
+  onPress={() => router.push("/SavedAddressesScreen")}
+>
+  <Ionicons name="add" size={18} color={COLORS.text} />
+  <Text style={styles.addAddressText}>Add or manage addresses</Text>
+</TouchableOpacity>
 
         {/* Note for rider */}
         <View style={[styles.sectionHeaderRow, { marginTop: 24 }]}>
@@ -286,7 +399,7 @@ export default function CheckoutScreen() {
             <Ionicons
               name="arrow-forward"
               size={18}
-              color={COLORS.bg}
+              color={"white"}
               style={{ marginLeft: 8 }}
             />
           </View>
@@ -344,24 +457,25 @@ function StepDot({
 function SectionHeader({
   title,
   action,
+  onActionPress,
   style,
 }: {
   title: string;
   action?: string;
+  onActionPress?: () => void;
   style?: object;
 }) {
   return (
     <View style={[styles.sectionHeaderRow, style]}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {action ? (
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onActionPress}>
           <Text style={styles.sectionAction}>{action}</Text>
         </TouchableOpacity>
       ) : null}
     </View>
   );
 }
-
 function PaymentOption({
   icon,
   title,
@@ -688,12 +802,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   placeOrderTitle: {
-    color: COLORS.bg,
+    color: "white",
     fontSize: 15,
     fontFamily: "PlusJakarta-Bold",
   },
   placeOrderSubtitle: {
-    color: "rgba(11,13,12,0.7)",
+    color: "white",
     fontSize: 11,
     marginTop: 2,
     fontFamily: "PlusJakarta-Regular",

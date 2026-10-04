@@ -63,7 +63,7 @@ export default function ChooseDeliveryAddress() {
       }
 
       router.push({
-        pathname: "/map",
+        pathname: "/mapScreen",
         params: {
           latitude: latitude.toString(),
           longitude: longitude.toString(),
@@ -106,7 +106,7 @@ export default function ChooseDeliveryAddress() {
       const { latitude, longitude } = results[0];
 
       router.push({
-        pathname: "/map",
+        pathname: "/mapScreen",
         params: {
           latitude: latitude.toString(),
           longitude: longitude.toString(),

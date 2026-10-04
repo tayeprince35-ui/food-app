@@ -1,6 +1,6 @@
-import { categories, recentSearches, trendingItems } from "@/assets/data";
+import { categories, trendingItems } from "@/assets/data";
 import CategoryCard from "@/components/BrowseCategories";
-import RecentItem, { SectionTitle } from "@/components/RecentItem";
+import { SectionTitle } from "@/components/SectionTitle";
 import TrendingChip from "@/components/TrendingSearches";
 import { RESTAURANTS_AND_MEALS } from "@/data/food";
 import { StyleSheet, View } from "react-native";
@@ -15,15 +15,6 @@ export default function SearchEmptyState({
 }: SearchEmptyStateProps) {
   return (
     <>
-      {/* Recent */}
-      <SectionTitle icon="◷">RECENT</SectionTitle>
-
-      <View style={styles.recentList}>
-        {recentSearches.map((item) => (
-          <RecentItem key={item.title} item={item} />
-        ))}
-      </View>
-
       {/* Trending */}
       <SectionTitle icon="↗">TRENDING NOW</SectionTitle>
 

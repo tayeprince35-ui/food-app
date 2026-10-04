@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { Session, User } from "@supabase/supabase-js";
+import { router } from "expo-router";
 import {
   createContext,
   useContext,
@@ -63,8 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (session) setIsGuest(false);
+  }, [session]);
+
   const continueAsGuest = () => {
     setIsGuest(true);
+    router.replace("/(tabs)");
   };
 
   const logout = async () => {

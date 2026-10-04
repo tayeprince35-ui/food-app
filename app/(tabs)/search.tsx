@@ -1,4 +1,5 @@
 import DishDetailModal from "@/components/DishDetailModal";
+import RecentSearches from "@/components/RecentSearches";
 import RestaurantDetailModal from "@/components/RestaurantDetailModal";
 import SearchEmptyState from "@/components/SearchEmptyState";
 import SearchFoodGrid from "@/components/SearchFoodGrid";
@@ -8,13 +9,13 @@ import SearchResultsHeader from "@/components/SearchResultsHeader";
 import SearchSort, { SortOption } from "@/components/SearchSort";
 import SearchTabs from "@/components/SearchTabs";
 import { typography } from "@/constants/typography";
-
-import { Ionicons } from "@expo/vector-icons";
 import POPULAR_ITEMS, {
   Foods,
   RESTAURANTS_AND_MEALS,
   RestaurantAndMeal,
 } from "@/data/food";
+import { useRecentSearchStore } from "@/store/recentSearchStore";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -43,6 +44,7 @@ export default function Search(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<"restaurants" | "dishes">(
     "dishes",
   );
+  const addSearch = useRecentSearchStore((s) => s.addSearch);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] =
@@ -115,11 +117,17 @@ export default function Search(): React.JSX.Element {
             <View
               style={[styles.searchContainer, focused && styles.inputFocused]}
             >
-            
-              <Ionicons name="search" size={18} color="#f8f6f6" style={styles.searchIcon}/>
+              <Ionicons
+                name="search"
+                size={18}
+                color="#f8f6f6"
+                style={styles.searchIcon}
+              />
 
               <TextInput
                 value={query}
+                returnKeyType="search"
+                onSubmitEditing={() => addSearch(query)}
                 onChangeText={setQuery}
                 placeholder="Search restaurants, dishes..."
                 placeholderTextColor="#aaa"
@@ -138,16 +146,23 @@ export default function Search(): React.JSX.Element {
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-
           {!showResults ? (
-            <SearchEmptyState
-              onTrendingPress={(text) => {
-                setQuery(text);
-              }}
-              onCategoryPress={(category) => {
-                setActiveCategory(category);
-              }}
-            />
+            <>
+              <RecentSearches
+                onSelect={(text) => {
+                  setQuery(text);
+                  setDebouncedQuery(text);
+                }}
+              />
+              <SearchEmptyState
+                onTrendingPress={(text) => {
+                  setQuery(text);
+                }}
+                onCategoryPress={(category) => {
+                  setActiveCategory(category);
+                }}
+              />
+            </>
           ) : (
             <View>
               {activeCategory && (
@@ -192,6 +207,7 @@ export default function Search(): React.JSX.Element {
                   foods={filteredFoods}
                   onFoodPress={(food) => {
                     setSelectedDish(food);
+                    addSearch(debouncedQuery);
                   }}
                 />
               )}
@@ -202,6 +218,7 @@ export default function Search(): React.JSX.Element {
                     restaurants={filteredRestaurants}
                     onRestaurantPress={(restaurant) => {
                       setSelectedRestaurant(restaurant);
+                      addSearch(debouncedQuery);
                     }}
                   />
                 )}

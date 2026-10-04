@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const Logo = require("./../assets/icons/logo.png");
 const COLORS = {
   bg: "#0B0D0C",
   card: "#141715",
@@ -207,7 +208,14 @@ export default function ReceiptScreen() {
           {/* Brand + status */}
           <View style={styles.brandRow}>
             <View style={styles.logo}>
-              <Ionicons name="restaurant" size={16} color={COLORS.text} />
+              <Image
+                source={Logo}
+                style={{
+                  width: 24,
+                  height: 24,
+                }}
+                contentFit="contain"
+              />
             </View>
             <Text style={styles.brand}>HeyBite</Text>
           </View>
@@ -342,7 +350,7 @@ export default function ReceiptScreen() {
 
         <TouchableOpacity
           style={styles.secondaryBtn}
-          onPress={() => router.push("/(tabs)/order-detail")}
+          onPress={() => router.push("/(tabs)/orders")}
         >
           <Text style={styles.secondaryBtnText}>Back to orders</Text>
         </TouchableOpacity>
@@ -383,8 +391,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logo: {
-    width: 28,
-    height: 28,
+    width: 38,
+    height: 38,
     borderRadius: 14,
     backgroundColor: COLORS.green,
     alignItems: "center",
