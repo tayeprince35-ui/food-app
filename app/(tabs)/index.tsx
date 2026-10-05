@@ -141,7 +141,7 @@ function Greeting({ user }: { user: any }) {
   return (
     <View className="px-5 mt-4">
       <Text style={typography.regular} className="text-[#A0A0A0] text-sm">
-       { greeting} 👋
+        {greeting} 👋
       </Text>
 
       <Text style={typography.bold} className="text-2xl text-white mt-1">
@@ -440,7 +440,10 @@ const HomeCard = memo(function HomeCard({
           </View>
 
           <View className="absolute top-3 right-3 bg-black/40 p-1.5 rounded-full">
-            <FavoriteButton id={String(item.id)} />
+            <FavoriteButton
+              id={String(item.id)}
+              type={isRestaurant ? "restaurant" : "food"}
+            />
           </View>
 
           <View className="absolute bottom-3 left-3 bg-[#FF4D4D] px-2 py-1 rounded-md">

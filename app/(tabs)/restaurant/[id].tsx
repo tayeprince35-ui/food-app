@@ -105,7 +105,7 @@ const RestaurantScreen = () => {
 
               <View style={styles.headerRightIcons}>
                 <TouchableOpacity style={styles.iconButton}>
-                  <FavoriteButton id={id} />
+                  <FavoriteButton id={id} type="restaurant" />
                 </TouchableOpacity>
 
                 <TouchableOpacity

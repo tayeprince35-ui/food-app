@@ -76,7 +76,7 @@ export const useCartStore = create<CartStore>()(
       isInCart: (foodId) => {
         return get().cart.some((item) => item.id === foodId);
       },
-    }),
+    }),  
     {
       name: 'cart-storage',
       storage: createJSONStorage(() => AsyncStorage),

@@ -1,3 +1,4 @@
+import GlassBackButton from "@/components/GlassBackButton";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Alert,
@@ -11,9 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const GetHelpScreen = () => {
-  // 2. Create helper functions
   const handleChat = () => {
-    // Replace with your actual WhatsApp number
     const phoneNumber = "+2348012345678";
     const url = `whatsapp://send?phone=${phoneNumber}&text=Hello, I need help with my order.`;
 
@@ -45,14 +44,12 @@ const GetHelpScreen = () => {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle} className="ml-3">
-          Get Help
-        </Text>
+        <GlassBackButton />
+        <Text style={styles.headerTitle}>Get Help</Text>
       </View>
 
       {/* Menu Options */}
       <View style={styles.menuContainer}>
-        {/* Chat Option */}
         <TouchableOpacity style={styles.menuItem} onPress={handleChat}>
           <View style={styles.menuItemLeft}>
             <Ionicons
@@ -68,7 +65,6 @@ const GetHelpScreen = () => {
 
         <View style={styles.divider} />
 
-        {/* Email Option */}
         <TouchableOpacity style={styles.menuItem} onPress={handleEmail}>
           <View style={styles.menuItemLeft}>
             <Ionicons
@@ -84,7 +80,6 @@ const GetHelpScreen = () => {
 
         <View style={styles.divider} />
 
-        {/* Call Option (New) */}
         <TouchableOpacity style={styles.menuItem} onPress={handleCall}>
           <View style={styles.menuItemLeft}>
             <Ionicons
@@ -107,19 +102,19 @@ const GetHelpScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0f0f0f", // Dark background matching the previous screens
+    backgroundColor: "#0f0f0f",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 20,
+    gap: 12,
   },
-
   headerTitle: {
     color: "#ffffff",
     fontSize: 20,
-    fontWeight: "700",
+    fontFamily: "PlusJakarta-Bold",
   },
   menuContainer: {
     marginTop: 10,
@@ -141,11 +136,11 @@ const styles = StyleSheet.create({
   menuItemText: {
     color: "#ffffff",
     fontSize: 16,
-    fontWeight: "500",
+    fontFamily: "PlusJakarta-Medium",
   },
   divider: {
     height: 1,
-    backgroundColor: "#222222", // Dark gray line
+    backgroundColor: "#222222",
     marginHorizontal: 20,
   },
 });

@@ -1,27 +1,20 @@
-import { useFavoriteStore } from "@/store/favoriteStore";
+import { FavoriteType, useFavoriteStore } from "@/store/favoriteStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet } from "react-native";
 
 type FavoriteButtonProps = {
   id: string;
+  type: FavoriteType;
 };
 
-export default function FavoriteButton({
-  id,
-}: FavoriteButtonProps) {
+export default function FavoriteButton({ id, type }: FavoriteButtonProps) {
   const isFavorite = useFavoriteStore((state) =>
-    state.favorites.includes(id)
+    state.favorites.some((f) => f.item_type === type && f.item_id === id),
   );
-
-  const toggleFavorite = useFavoriteStore(
-    (state) => state.toggleFavorite
-  );
+  const toggleFavorite = useFavoriteStore((state) => state.toggleFavorite);
 
   return (
-    <Pressable
-      style={styles.button}
-      onPress={() => toggleFavorite(id)}
-    >
+    <Pressable style={styles.button} onPress={() => toggleFavorite(type, id)}>
       <Ionicons
         name={isFavorite ? "heart" : "heart-outline"}
         size={22}

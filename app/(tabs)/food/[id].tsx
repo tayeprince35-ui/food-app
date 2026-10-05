@@ -98,7 +98,7 @@ export default function FoodDetails() {
 
           {/* Favorite */}
           <View className="absolute top-4 right-5 w-11 h-11 rounded-full bg-black/50 items-center justify-center">
-            <FavoriteButton id={String(food.id)} />
+            <FavoriteButton id={String(food.id)} type="food"/>
           </View>
 
           {/* Free delivery */}

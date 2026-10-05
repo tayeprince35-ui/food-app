@@ -1,5 +1,6 @@
 import { useAuth } from "@/lib/AuthContext";
 import { normalizePhone } from "@/lib/phone";
+import { useSignupDraftStore } from "@/store/signupDraftStore";
 import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image } from "expo-image";
@@ -26,7 +27,6 @@ import { z } from "zod";
 import CountryPicker, { Country } from "@/components/CountryPicker";
 
 import signupSchema from "../../lib/schemas/signupSchema";
-import { supabase } from "../../lib/supabase";
 
 const Logo = require("../../assets/icons/logo.png");
 
@@ -117,7 +117,7 @@ export default function SignUpScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
-
+  const setDraft = useSignupDraftStore((s) => s.setDraft);
   const { continueAsGuest } = useAuth();
   const [selectedCountry, setSelectedCountry] = useState<Country>({
     name: "Nigeria",
@@ -147,74 +147,19 @@ export default function SignUpScreen() {
     },
   });
 
-  const handleContinue = async (formData: SignupFormData) => {
-    if (loading) return;
-
-    setLoading(true);
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email.trim().toLowerCase(),
-
-        password: formData.password,
-
-        options: {
-          data: {
-            first_name: formData.firstName.trim(),
-
-            last_name: formData.lastName.trim(),
-
-            country: formData.country,
-
-            phone_number:
-              normalizePhone(formData.phoneNumber, formData.country) ??
-              formData.phoneNumber.trim(),
-            referral_code: formData.referralCode?.trim() || null,
-          },
-        },
-      });
-
-      if (error) {
-        Toast.show({
-          type: "error",
-          text1: "Sign up failed",
-          text2: error.message,
-        });
-
-        return;
-      }
-
-      if (!data.session) {
-        Toast.show({
-          type: "success",
-          text1: "Check your inbox",
-          text2: "We sent you a confirmation link to verify your email.",
-        });
-
-        router.replace("/(auth)/login");
-
-        return;
-      }
-
-      Toast.show({
-        type: "success",
-        text1: "Welcome to HeyBite!",
-        text2: "Your account has been created.",
-      });
-
-      router.replace("/(tabs)");
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : "Please try again later.";
-
-      Toast.show({
-        type: "error",
-        text1: "An error occurred",
-        text2: message,
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleContinue = (formData: SignupFormData) => {
+    setDraft({
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      country: formData.country,
+      phoneNumber:
+        normalizePhone(formData.phoneNumber, formData.country) ??
+        formData.phoneNumber.trim(),
+      referralCode: formData.referralCode?.trim() || null,
+    });
+    router.push("/(auth)/verification");
   };
 
   return (

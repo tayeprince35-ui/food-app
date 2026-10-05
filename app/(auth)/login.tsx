@@ -275,6 +275,8 @@ export default function Login() {
             <Pressable
               disabled={loading}
               style={styles.socialButton}
+              onPress={() => showComingSoon("Google")}
+         
               
             >
               <FontAwesome6 name="google" size={17} color="#4285F4" />

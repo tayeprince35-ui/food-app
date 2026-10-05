@@ -15,11 +15,10 @@ import Toast, {
 import LoadingScreen from "./../components/LoadingScreen";
 
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
-import "./../global.css";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { readIntroSeen, writeIntroSeen } from "@/lib/intro";
 import { useEffect, useState } from "react";
+import "./../global.css";
 
-const INTRO_KEY = "hasSeenIntro";
 export const toastConfig: ToastConfig = {
   success: (props) => (
     <BaseToast
@@ -82,7 +81,6 @@ function InitialLayout() {
   const router = useRouter();
   const [introSeen, setIntroSeen] = useState<boolean | null>(null);
 
-
   const [fontsLoaded, fontError] = useFonts({
     "PlusJakarta-Regular": PlusJakartaSans_400Regular,
     "PlusJakarta-Medium": PlusJakartaSans_500Medium,
@@ -92,36 +90,41 @@ function InitialLayout() {
     ...MaterialCommunityIcons.font,
   });
 
-    // load the flag once
+  // Load the intro flag once.
   useEffect(() => {
-    AsyncStorage.getItem(INTRO_KEY)
-      .then((v) => setIntroSeen(v === "true"))
-      .catch(() => setIntroSeen(false));
+    let alive = true;
+    readIntroSeen().then((v) => {
+      if (alive) setIntroSeen(v);
+    });
+    return () => {
+      alive = false;
+    };
   }, []);
 
-
+  // Mark the intro as seen once the user is logged in.
   useEffect(() => {
     if (session && introSeen === false) {
       setIntroSeen(true);
-      AsyncStorage.setItem(INTRO_KEY, "true").catch(() => {});
+      writeIntroSeen(true);
     }
   }, [session, introSeen]);
 
+  // Global guard: keep logged-in users and guests off the (auth) screens.
   useEffect(() => {
     if (isLoading || introSeen === null) return;
 
     const inAuthGroup = segments[0] === "(auth)";
 
-    if (session && inAuthGroup) {
+    if ((session || isGuest) && inAuthGroup) {
       router.replace("/(tabs)");
-    } else if (!session && !isGuest && !inAuthGroup) {
-      router.replace(introSeen ? "/(auth)/login" : "/splash");
     }
   }, [session, isGuest, isLoading, segments, introSeen]);
 
-  if (isLoading || (!fontsLoaded && !fontError)) {
+  // ONE loader, gated on everything.
+  if (isLoading || introSeen === null || (!fontsLoaded && !fontError)) {
     return <LoadingScreen />;
   }
+
   if (fontError) {
     console.warn("Font failed to load:", fontError);
   }
@@ -133,12 +136,11 @@ function InitialLayout() {
     </>
   );
 }
+
 export default function RootLayout() {
   return (
-
-      <AuthProvider>
-        <InitialLayout />
-      </AuthProvider>
-  
+    <AuthProvider>
+      <InitialLayout />
+    </AuthProvider>
   );
 }

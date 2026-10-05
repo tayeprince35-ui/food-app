@@ -5,11 +5,12 @@ import { useCartStore } from "@/store/cartStore";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
-import React, { useEffect, useCallback, useState} from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
 
 import { supabase } from "@/lib/supabase";
 
+import { useAuth } from "@/lib/AuthContext";
 import {
   ScrollView,
   StatusBar,
@@ -20,7 +21,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "@/lib/AuthContext";
 
 const COLORS = {
   bg: "#0B0D0C",
@@ -68,56 +68,56 @@ export default function CheckoutScreen() {
   const [paymentMethod, setPaymentMethod] = useState<"online" | "wallet">(
     "online",
   );
-  
-const [addresses, setAddresses] = useState<SavedAddress[]>([]);
-const [selectedId, setSelectedId] = useState<number | null>(null);
-const [pickingAddress, setPickingAddress] = useState(false);
 
-// reload every time the screen is shown, so a newly added address appears
-useFocusEffect(
-  useCallback(() => {
-    let active = true;
-    supabase
-      .from("addresses")
-      .select("id, label, address, landmark, phone, is_default")
-      .order("is_default", { ascending: false })
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (!active) return;
-        if (error) {
-          console.error("ADDRESSES ERROR:", error);
-          return;
-        }
-        const list = (data ?? []) as SavedAddress[];
-        setAddresses(list);
-        // keep the current choice if it still exists, otherwise use the default
-        setSelectedId((prev) =>
-          list.some((a) => a.id === prev) ? prev : (list[0]?.id ?? null),
-        );
-      });
-    return () => {
-      active = false;
-    };
-  }, []),
-);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [pickingAddress, setPickingAddress] = useState(false);
 
-const selectedAddress = addresses.find((a) => a.id === selectedId) ?? null;
-const { user } = useAuth()
+  // reload every time the screen is shown, so a newly added address appears
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      supabase
+        .from("addresses")
+        .select("id, label, address, landmark, phone, is_default")
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false })
+        .then(({ data, error }) => {
+          if (!active) return;
+          if (error) {
+            console.error("ADDRESSES ERROR:", error);
+            return;
+          }
+          const list = (data ?? []) as SavedAddress[];
+          setAddresses(list);
+          // keep the current choice if it still exists, otherwise use the default
+          setSelectedId((prev) =>
+            list.some((a) => a.id === prev) ? prev : (list[0]?.id ?? null),
+          );
+        });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  const selectedAddress = addresses.find((a) => a.id === selectedId) ?? null;
+  const { user } = useAuth();
   const { cart, removeFromCart } = useCartStore();
   const total = useCartTotal();
   const [placing, setPlacing] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
 
   // cart changed after an order was created -> make a fresh order next time
- useEffect(() => {
-  setOrderId(null);
-}, [cart, selectedId]);
+  useEffect(() => {
+    setOrderId(null);
+  }, [cart, selectedId]);
 
   const handlePlaceOrder = async () => {
     if (!user) {
-  router.push("/(auth)/login");
-  return;
-}
+      router.push("/(auth)/login");
+      return;
+    }
     if (placing) return;
     if (cart.length === 0) {
       showError("Your cart is empty.");
@@ -125,10 +125,10 @@ const { user } = useAuth()
     }
 
     if (!selectedAddress) {
-  showError("Add a delivery address first.");
-  router.push("/SavedAddressesScreen");
-  return;
-}
+      showError("Add a delivery address first.");
+      router.push("/SavedAddressesScreen");
+      return;
+    }
     try {
       setPlacing(true);
       const id =
@@ -136,7 +136,7 @@ const { user } = useAuth()
         (await placeOrder({
           items: cart,
           total: totalPayment,
-address: addressText(selectedAddress),
+          address: addressText(selectedAddress),
           paymentMethod: paymentMethod,
           note: [activeChip, note.trim()].filter(Boolean).join(" - "),
         }));
@@ -187,78 +187,86 @@ address: addressText(selectedAddress),
         </View>
 
         {/* Delivery address */}
-       <SectionHeader
-  title="Delivery address"
-  action={addresses.length > 1 ? (pickingAddress ? "Done" : "Change") : undefined}
-  onActionPress={() => setPickingAddress((p) => !p)}
-/>
-
-{selectedAddress ? (
-  <View style={[styles.card, styles.cardSelected, styles.row]}>
-    <Ionicons
-      name="location"
-      size={20}
-      color={COLORS.green}
-      style={{ marginRight: 10 }}
-    />
-    <View style={{ flex: 1 }}>
-      <Text style={styles.cardTitle}>
-        {selectedAddress.label}: {selectedAddress.address}
-      </Text>
-      {selectedAddress.landmark ? (
-        <Text style={styles.cardSubtitle}>{selectedAddress.landmark}</Text>
-      ) : null}
-    </View>
-    <Ionicons name="checkmark-circle" size={20} color={COLORS.green} />
-  </View>
-) : (
-  <View style={[styles.card, styles.row]}>
-    <Ionicons
-      name="location-outline"
-      size={20}
-      color={COLORS.subtext}
-      style={{ marginRight: 10 }}
-    />
-    <Text style={styles.cardSubtitle}>No delivery address yet</Text>
-  </View>
-)}
-
-{pickingAddress &&
-  addresses
-    .filter((a) => a.id !== selectedId)
-    .map((a) => (
-      <TouchableOpacity
-        key={a.id}
-        style={[styles.card, styles.row, { marginTop: 10 }]}
-        onPress={() => {
-          setSelectedId(a.id);
-          setPickingAddress(false);
-        }}
-      >
-        <Ionicons
-          name="location-outline"
-          size={20}
-          color={COLORS.subtext}
-          style={{ marginRight: 10 }}
+        <SectionHeader
+          title="Delivery address"
+          action={
+            addresses.length > 1
+              ? pickingAddress
+                ? "Done"
+                : "Change"
+              : undefined
+          }
+          onActionPress={() => setPickingAddress((p) => !p)}
         />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.cardTitle}>
-            {a.label}: {a.address}
-          </Text>
-          {a.landmark ? (
-            <Text style={styles.cardSubtitle}>{a.landmark}</Text>
-          ) : null}
-        </View>
-      </TouchableOpacity>
-    ))}
 
-<TouchableOpacity
-  style={styles.addAddressBtn}
-  onPress={() => router.push("/SavedAddressesScreen")}
->
-  <Ionicons name="add" size={18} color={COLORS.text} />
-  <Text style={styles.addAddressText}>Add or manage addresses</Text>
-</TouchableOpacity>
+        {selectedAddress ? (
+          <View style={[styles.card, styles.cardSelected, styles.row]}>
+            <Ionicons
+              name="location"
+              size={20}
+              color={COLORS.green}
+              style={{ marginRight: 10 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>
+                {selectedAddress.label}: {selectedAddress.address}
+              </Text>
+              {selectedAddress.landmark ? (
+                <Text style={styles.cardSubtitle}>
+                  {selectedAddress.landmark}
+                </Text>
+              ) : null}
+            </View>
+            <Ionicons name="checkmark-circle" size={20} color={COLORS.green} />
+          </View>
+        ) : (
+          <View style={[styles.card, styles.row]}>
+            <Ionicons
+              name="location-outline"
+              size={20}
+              color={COLORS.subtext}
+              style={{ marginRight: 10 }}
+            />
+            <Text style={styles.cardSubtitle}>No delivery address yet</Text>
+          </View>
+        )}
+
+        {pickingAddress &&
+          addresses
+            .filter((a) => a.id !== selectedId)
+            .map((a) => (
+              <TouchableOpacity
+                key={a.id}
+                style={[styles.card, styles.row, { marginTop: 10 }]}
+                onPress={() => {
+                  setSelectedId(a.id);
+                  setPickingAddress(false);
+                }}
+              >
+                <Ionicons
+                  name="location-outline"
+                  size={20}
+                  color={COLORS.subtext}
+                  style={{ marginRight: 10 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardTitle}>
+                    {a.label}: {a.address}
+                  </Text>
+                  {a.landmark ? (
+                    <Text style={styles.cardSubtitle}>{a.landmark}</Text>
+                  ) : null}
+                </View>
+              </TouchableOpacity>
+            ))}
+
+        <TouchableOpacity
+          style={styles.addAddressBtn}
+          onPress={() => router.push("/SavedAddressesScreen")}
+        >
+          <Ionicons name="add" size={18} color={COLORS.text} />
+          <Text style={styles.addAddressText}>Add or manage addresses</Text>
+        </TouchableOpacity>
 
         {/* Note for rider */}
         <View style={[styles.sectionHeaderRow, { marginTop: 24 }]}>

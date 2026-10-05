@@ -3,7 +3,7 @@ import { formatDate } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -214,7 +214,10 @@ const TrackOrderScreen = () => {
       <View style={styles.header}>
         <GlassBackButton />
         <Text style={styles.headerTitle}>Track Order</Text>
-        <TouchableOpacity style={styles.helpButton}>
+        <TouchableOpacity
+          style={styles.helpButton}
+          onPress={() => router.push("/GetHelpScreen")}
+        >
           <Text style={styles.helpText}>Help</Text>
         </TouchableOpacity>
       </View>

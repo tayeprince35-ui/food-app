@@ -1,11 +1,10 @@
 import GlassBackButton from "@/components/GlassBackButton";
 import { useAuth } from "@/lib/AuthContext";
 import { normalizePhone } from "@/lib/phone";
-import { supabase } from "@/lib/supabase";
+import { useAddressStore } from "@/store/addressStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-
 import {
   ActivityIndicator,
   Alert,
@@ -33,15 +32,6 @@ const COLORS = {
   chip: "#1B1F1C",
 };
 
-type Address = {
-  id: number;
-  label: string;
-  address: string;
-  landmark: string | null;
-  phone: string | null;
-  is_default: boolean;
-};
-
 type Form = { label: string; address: string; landmark: string; phone: string };
 type Errors = { address?: string; phone?: string };
 
@@ -58,10 +48,18 @@ const notify = (title: string, message: string) =>
     : Alert.alert(title, message);
 
 export default function SavedAddressesScreen() {
-  const { user: userData } = useAuth();
+  const { user: userData, isGuest } = useAuth();
 
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [loading, setLoading] = useState(true);
+  // The single source of truth for whether we read from device or Supabase
+  const isGuestMode = !userData || isGuest;
+
+  const addresses = useAddressStore((s) => s.addresses);
+  const loading = useAddressStore((s) => s.loading);
+  const fetchAddresses = useAddressStore((s) => s.fetchAddresses);
+  const addAddress = useAddressStore((s) => s.addAddress);
+  const makeDefault = useAddressStore((s) => s.makeDefault);
+  const removeAddress = useAddressStore((s) => s.removeAddress);
+
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Form>({
@@ -72,22 +70,11 @@ export default function SavedAddressesScreen() {
   });
   const [errors, setErrors] = useState<Errors>({});
 
-  const fetchAddresses = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("addresses")
-      .select("id, label, address, landmark, phone, is_default")
-      .order("is_default", { ascending: false })
-      .order("created_at", { ascending: false });
-
-    if (error) console.error("ADDRESSES ERROR:", error);
-    else setAddresses(data as Address[]);
-    setLoading(false);
-  }, []);
-
+  // Refetch whenever the screen is focused or identity changes
   useFocusEffect(
     useCallback(() => {
-      fetchAddresses();
-    }, [fetchAddresses]),
+      fetchAddresses(isGuestMode);
+    }, [fetchAddresses, isGuestMode]),
   );
 
   const openForm = () => {
@@ -106,6 +93,7 @@ export default function SavedAddressesScreen() {
 
     const found: Errors = {};
     const address = form.address.trim();
+
     if (address.length < 5) found.address = "Enter your full delivery address";
 
     let phone: string | null = null;
@@ -119,72 +107,56 @@ export default function SavedAddressesScreen() {
 
     try {
       setSaving(true);
-      const { error } = await supabase.from("addresses").insert({
-        label: form.label,
-        address,
-        landmark: form.landmark.trim() || null,
-        phone,
-        is_default: addresses.length === 0, // the first address becomes the default
-      });
-      if (error) throw error;
+
+      const ok = await addAddress(
+        {
+          label: form.label,
+          address,
+          landmark: form.landmark.trim() || null,
+          phone,
+        },
+        isGuestMode,
+      );
+
+      if (!ok) {
+        notify("Could not save", "Please try again.");
+        return;
+      }
 
       setShowForm(false);
-      await fetchAddresses();
-    } catch (e) {
-      console.error("SAVE ADDRESS ERROR:", e);
-      notify("Could not save", (e as Error).message);
     } finally {
       setSaving(false);
     }
   };
 
-  const makeDefault = async (id: number) => {
-    const { error: clearErr } = await supabase
-      .from("addresses")
-      .update({ is_default: false })
-      .neq("id", id)
-      .eq("is_default", true);
-    const { error: setErr } = await supabase
-      .from("addresses")
-      .update({ is_default: true })
-      .eq("id", id);
-
-    if (clearErr || setErr) notify("Could not update", "Please try again.");
-    await fetchAddresses();
+  const handleMakeDefault = async (id: number) => {
+    const ok = await makeDefault(id, isGuestMode);
+    if (!ok) notify("Could not update", "Please try again.");
   };
 
-  const remove = async (a: Address) => {
-    const { error } = await supabase.from("addresses").delete().eq("id", a.id);
-    if (error) {
-      notify("Could not delete", error.message);
-      return;
-    }
-    // if the default was deleted, promote another one
-    const rest = addresses.filter((x) => x.id !== a.id);
-    if (a.is_default && rest.length > 0) {
-      await supabase
-        .from("addresses")
-        .update({ is_default: true })
-        .eq("id", rest[0].id);
-    }
-    await fetchAddresses();
+  const handleRemove = async (id: number) => {
+    const ok = await removeAddress(id, isGuestMode);
+    if (!ok) notify("Could not delete", "Please try again.");
   };
 
-  const confirmRemove = (a: Address) => {
+  const confirmRemove = (a: (typeof addresses)[number]) => {
     if (Platform.OS === "web") {
-      if (window.confirm(`Delete "${a.label}" address?`)) remove(a);
+      if (window.confirm(`Delete "${a.label}" address?`)) handleRemove(a.id);
       return;
     }
     Alert.alert("Delete address?", a.address, [
       { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => remove(a) },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => handleRemove(a.id),
+      },
     ]);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
-
       <View style={styles.header}>
         <GlassBackButton />
         <Text style={styles.headerTitle}>Saved addresses</Text>
@@ -226,7 +198,9 @@ export default function SavedAddressesScreen() {
                   <View style={styles.cardTop}>
                     <View style={styles.labelRow}>
                       <Ionicons
-                        name={(LABEL_ICON[a.label] ?? "location-outline") as any}
+                        name={
+                          (LABEL_ICON[a.label] ?? "location-outline") as any
+                        }
                         size={16}
                         color={COLORS.green}
                       />
@@ -237,11 +211,17 @@ export default function SavedAddressesScreen() {
                         </View>
                       )}
                     </View>
-                    <TouchableOpacity onPress={() => confirmRemove(a)} hitSlop={10}>
-                      <Ionicons name="trash-outline" size={18} color={COLORS.red} />
+                    <TouchableOpacity
+                      onPress={() => confirmRemove(a)}
+                      hitSlop={10}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={18}
+                        color={COLORS.red}
+                      />
                     </TouchableOpacity>
                   </View>
-
                   <Text style={styles.cardAddress}>{a.address}</Text>
                   {a.landmark ? (
                     <Text style={styles.cardMeta}>Landmark: {a.landmark}</Text>
@@ -249,11 +229,10 @@ export default function SavedAddressesScreen() {
                   {a.phone ? (
                     <Text style={styles.cardMeta}>Phone: {a.phone}</Text>
                   ) : null}
-
                   {!a.is_default && (
                     <TouchableOpacity
                       style={styles.defaultBtn}
-                      onPress={() => makeDefault(a.id)}
+                      onPress={() => handleMakeDefault(a.id)}
                     >
                       <Text style={styles.defaultBtnText}>Set as default</Text>
                     </TouchableOpacity>
@@ -264,7 +243,6 @@ export default function SavedAddressesScreen() {
               {showForm ? (
                 <View style={styles.formCard}>
                   <Text style={styles.formTitle}>New address</Text>
-
                   <View style={styles.chipRow}>
                     {LABELS.map((l) => {
                       const active = form.label === l;
@@ -275,7 +253,10 @@ export default function SavedAddressesScreen() {
                           onPress={() => setForm({ ...form, label: l })}
                         >
                           <Text
-                            style={[styles.chipText, active && styles.chipTextActive]}
+                            style={[
+                              styles.chipText,
+                              active && styles.chipTextActive,
+                            ]}
                           >
                             {l}
                           </Text>
@@ -290,7 +271,8 @@ export default function SavedAddressesScreen() {
                     value={form.address}
                     onChangeText={(t) => {
                       setForm({ ...form, address: t });
-                      if (errors.address) setErrors({ ...errors, address: undefined });
+                      if (errors.address)
+                        setErrors({ ...errors, address: undefined });
                     }}
                     placeholder="House number, street, area"
                     placeholderTextColor="#555"
@@ -301,7 +283,9 @@ export default function SavedAddressesScreen() {
                     <Text style={styles.errorText}>{errors.address}</Text>
                   ) : null}
 
-                  <Text style={styles.inputLabel}>NEARBY LANDMARK (OPTIONAL)</Text>
+                  <Text style={styles.inputLabel}>
+                    NEARBY LANDMARK (OPTIONAL)
+                  </Text>
                   <TextInput
                     style={styles.input}
                     value={form.landmark}
@@ -311,13 +295,16 @@ export default function SavedAddressesScreen() {
                     maxLength={100}
                   />
 
-                  <Text style={styles.inputLabel}>PHONE FOR THE RIDER (OPTIONAL)</Text>
+                  <Text style={styles.inputLabel}>
+                    PHONE FOR THE RIDER (OPTIONAL)
+                  </Text>
                   <TextInput
                     style={[styles.input, errors.phone && styles.inputError]}
                     value={form.phone}
                     onChangeText={(t) => {
                       setForm({ ...form, phone: t });
-                      if (errors.phone) setErrors({ ...errors, phone: undefined });
+                      if (errors.phone)
+                        setErrors({ ...errors, phone: undefined });
                     }}
                     placeholder="08012345678"
                     placeholderTextColor="#555"
@@ -371,13 +358,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
-  headerTitle: { color: COLORS.text, fontSize: 18, fontFamily: "PlusJakarta-SemiBold" },
+  headerTitle: {
+    color: COLORS.text,
+    fontSize: 18,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
   scroll: { padding: 16, paddingBottom: 40 },
-
   empty: { alignItems: "center", paddingVertical: 50 },
-  emptyTitle: { color: "#62666F", fontSize: 16, marginTop: 14, fontFamily: "PlusJakarta-SemiBold" },
-  emptySub: { color: "#474B52", fontSize: 13, marginTop: 4, fontFamily: "PlusJakarta-Regular" },
-
+  emptyTitle: {
+    color: "#62666F",
+    fontSize: 16,
+    marginTop: 14,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+  emptySub: {
+    color: "#474B52",
+    fontSize: 13,
+    marginTop: 4,
+    fontFamily: "PlusJakarta-Regular",
+  },
   card: {
     backgroundColor: COLORS.card,
     borderRadius: 14,
@@ -386,10 +385,22 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
   },
-  cardDefault: { borderColor: COLORS.green, backgroundColor: COLORS.greenDim },
-  cardTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  cardDefault: {
+    borderColor: COLORS.green,
+    backgroundColor: COLORS.greenDim,
+  },
+  cardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
   labelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  cardLabel: { color: COLORS.text, fontSize: 14, fontFamily: "PlusJakarta-SemiBold" },
+  cardLabel: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
   defaultBadge: {
     backgroundColor: "rgba(34,197,94,0.2)",
     borderRadius: 6,
@@ -397,12 +408,30 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     marginLeft: 4,
   },
-  defaultBadgeText: { color: COLORS.green, fontSize: 9, fontFamily: "PlusJakarta-Bold", letterSpacing: 0.5 },
-  cardAddress: { color: COLORS.text, fontSize: 13, lineHeight: 19, fontFamily: "PlusJakarta-Regular" },
-  cardMeta: { color: COLORS.subtext, fontSize: 12, marginTop: 4, fontFamily: "PlusJakarta-Regular" },
+  defaultBadgeText: {
+    color: COLORS.green,
+    fontSize: 9,
+    fontFamily: "PlusJakarta-Bold",
+    letterSpacing: 0.5,
+  },
+  cardAddress: {
+    color: COLORS.text,
+    fontSize: 13,
+    lineHeight: 19,
+    fontFamily: "PlusJakarta-Regular",
+  },
+  cardMeta: {
+    color: COLORS.subtext,
+    fontSize: 12,
+    marginTop: 4,
+    fontFamily: "PlusJakarta-Regular",
+  },
   defaultBtn: { alignSelf: "flex-start", marginTop: 10 },
-  defaultBtnText: { color: COLORS.green, fontSize: 12, fontFamily: "PlusJakarta-SemiBold" },
-
+  defaultBtnText: {
+    color: COLORS.green,
+    fontSize: 12,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
   addBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -415,8 +444,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginTop: 4,
   },
-  addBtnText: { color: COLORS.text, fontSize: 14, fontFamily: "PlusJakarta-Regular" },
-
+  addBtnText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-Regular",
+  },
   formCard: {
     backgroundColor: COLORS.card,
     borderRadius: 14,
@@ -424,7 +456,12 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
     padding: 16,
   },
-  formTitle: { color: COLORS.text, fontSize: 15, marginBottom: 12, fontFamily: "PlusJakarta-SemiBold" },
+  formTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    marginBottom: 12,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
   chipRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
   chip: {
     backgroundColor: COLORS.chip,
@@ -434,11 +471,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
-  chipActive: { backgroundColor: COLORS.greenDim, borderColor: COLORS.green },
-  chipText: { color: COLORS.subtext, fontSize: 12, fontFamily: "PlusJakarta-Regular" },
-  chipTextActive: { color: COLORS.green, fontFamily: "PlusJakarta-SemiBold" },
-
-  inputLabel: { color: COLORS.subtext, fontSize: 10, letterSpacing: 0.5, marginBottom: 6, marginTop: 4, fontFamily: "PlusJakarta-SemiBold" },
+  chipActive: {
+    backgroundColor: COLORS.greenDim,
+    borderColor: COLORS.green,
+  },
+  chipText: {
+    color: COLORS.subtext,
+    fontSize: 12,
+    fontFamily: "PlusJakarta-Regular",
+  },
+  chipTextActive: {
+    color: COLORS.green,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+  inputLabel: {
+    color: COLORS.subtext,
+    fontSize: 10,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    marginTop: 4,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
   input: {
     backgroundColor: COLORS.chip,
     borderRadius: 12,
@@ -452,8 +505,14 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakarta-Regular",
   },
   inputError: { borderColor: COLORS.red },
-  errorText: { color: COLORS.red, fontSize: 11, marginTop: -6, marginBottom: 10, marginLeft: 4, fontFamily: "PlusJakarta-Regular" },
-
+  errorText: {
+    color: COLORS.red,
+    fontSize: 11,
+    marginTop: -6,
+    marginBottom: 10,
+    marginLeft: 4,
+    fontFamily: "PlusJakarta-Regular",
+  },
   formButtons: { flexDirection: "row", gap: 10, marginTop: 6 },
   cancelBtn: {
     flex: 1,
@@ -464,7 +523,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cancelBtnText: { color: COLORS.subtext, fontSize: 14, fontFamily: "PlusJakarta-SemiBold" },
+  cancelBtnText: {
+    color: COLORS.subtext,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
   saveBtn: {
     flex: 1.4,
     height: 48,
@@ -473,5 +536,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  saveBtnText: { color: COLORS.text, fontSize: 14, fontFamily: "PlusJakarta-Bold" },
+  saveBtnText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-Bold",
+  },
 });

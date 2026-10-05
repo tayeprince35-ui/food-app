@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -48,6 +49,7 @@ function Field({
   editable = true,
   keyboardType,
   autoCapitalize,
+  delay = 0,
 }: {
   label: string;
   value: string;
@@ -56,39 +58,97 @@ function Field({
   editable?: boolean;
   keyboardType?: "default" | "phone-pad";
   autoCapitalize?: "none" | "words";
+  delay?: number;
 }) {
   const inputRef = useRef<TextInput>(null);
+  const focusAnim = useRef(new Animated.Value(0)).current;
+  const enterAnim = useRef(new Animated.Value(0)).current;
+
+  // entrance: fade + slide up, staggered via `delay`
+  useEffect(() => {
+    Animated.timing(enterAnim, {
+      toValue: 1,
+      duration: 400,
+      delay,
+      useNativeDriver: true,
+    }).start();
+  }, [enterAnim, delay]);
+
+  const animateFocus = (to: number) =>
+    Animated.spring(focusAnim, {
+      toValue: to,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 70,
+    }).start();
+
+  const borderColor = error
+    ? "#EF4444"
+    : focusAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ["#333", "#4ADE80"],
+      });
+
+  const labelColor = focusAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#666", "#4ADE80"],
+  });
+
+  const scale = focusAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.015],
+  });
+
   return (
-    <View>
+    <Animated.View
+      style={{
+        opacity: enterAnim,
+        transform: [
+          {
+            translateY: enterAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [14, 0],
+            }),
+          },
+        ],
+      }}
+    >
       <TouchableOpacity
         activeOpacity={1}
         disabled={!editable}
         onPress={() => inputRef.current?.focus()}
-        style={[styles.inputCard, error ? styles.inputCardError : null]}
       >
-        <View style={styles.inputWrapper}>
-          <Text style={styles.inputLabel}>{label}</Text>
-          <TextInput
-            ref={inputRef}
-            style={[styles.input, !editable && { color: "#888" }]}
-            value={value}
-            onChangeText={onChangeText}
-            editable={editable}
-            keyboardType={keyboardType}
-            autoCapitalize={autoCapitalize}
-            maxLength={60}
-            placeholderTextColor="#555"
+        <Animated.View
+          style={[styles.inputCard, { borderColor, transform: [{ scale }] }]}
+        >
+          <View style={styles.inputWrapper}>
+            <Animated.Text style={[styles.inputLabel, { color: labelColor }]}>
+              {label}
+            </Animated.Text>
+            <TextInput
+              ref={inputRef}
+              style={[styles.input, !editable && { color: "#888" }]}
+              value={value}
+              onChangeText={onChangeText}
+              editable={editable}
+              keyboardType={keyboardType}
+              autoCapitalize={autoCapitalize}
+              maxLength={60}
+              placeholderTextColor="#555"
+              onFocus={() => animateFocus(1)}
+              onBlur={() => animateFocus(0)}
+            />
+          </View>
+          <Ionicons
+            name={editable ? "pencil" : "lock-closed-outline"}
+            size={20}
+            color={editable ? "#4ADE80" : "#555"}
+            style={styles.inputIcon}
           />
-        </View>
-        <Ionicons
-          name={editable ? "pencil" : "lock-closed-outline"}
-          size={20}
-          color={editable ? "#4ADE80" : "#555"}
-          style={styles.inputIcon}
-        />
+        </Animated.View>
       </TouchableOpacity>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -230,6 +290,7 @@ const PersonalInfoScreen = () => {
             onChangeText={setField("firstName")}
             error={errors.firstName}
             autoCapitalize="words"
+            delay={0}
           />
           <Field
             label="Last name"
@@ -237,6 +298,7 @@ const PersonalInfoScreen = () => {
             onChangeText={setField("lastName")}
             error={errors.lastName}
             autoCapitalize="words"
+            delay={60}
           />
           <Field
             label="Phone number"
@@ -244,8 +306,14 @@ const PersonalInfoScreen = () => {
             onChangeText={setField("phone")}
             error={errors.phone}
             keyboardType="phone-pad"
+            delay={120}
           />
-          <Field label="Email address" value={email} editable={false} />
+          <Field
+            label="Email address"
+            value={email}
+            editable={false}
+            delay={180}
+          />
 
           {/* Section: Account */}
           <Text style={[styles.sectionLabel, { marginTop: 24 }]}>ACCOUNT</Text>
@@ -287,6 +355,7 @@ const PersonalInfoScreen = () => {
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -338,10 +407,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
-    overflow: "hidden", // add this
+    overflow: "hidden",
   },
   avatarImage: { width: "100%", height: "100%" },
-  inputCardError: { borderColor: "#EF4444" },
   errorText: {
     color: "#EF4444",
     fontSize: 12,
@@ -407,7 +475,7 @@ const styles = StyleSheet.create({
   input: {
     color: "#fff",
     fontSize: 16,
-    fontFamily: "PlusJakarta-Medium", // Mapped from '500'
+    fontFamily: "PlusJakarta-Medium",
     padding: 0,
   },
   inputIcon: {
