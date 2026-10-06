@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import { Slot, useRouter, useSegments } from "expo-router";
+import { Slot } from "expo-router";
 import Toast, {
   BaseToast,
   ErrorToast,
@@ -76,9 +76,7 @@ export const toastConfig: ToastConfig = {
 };
 
 function InitialLayout() {
-  const { session, isLoading, isGuest } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
+  const { session, isLoading } = useAuth();
   const [introSeen, setIntroSeen] = useState<boolean | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
@@ -108,17 +106,6 @@ function InitialLayout() {
       writeIntroSeen(true);
     }
   }, [session, introSeen]);
-
-  // Global guard: keep logged-in users and guests off the (auth) screens.
-  useEffect(() => {
-    if (isLoading || introSeen === null) return;
-
-    const inAuthGroup = segments[0] === "(auth)";
-
-    if ((session || isGuest) && inAuthGroup) {
-      router.replace("/(tabs)");
-    }
-  }, [session, isGuest, isLoading, segments, introSeen]);
 
   // ONE loader, gated on everything.
   if (isLoading || introSeen === null || (!fontsLoaded && !fontError)) {

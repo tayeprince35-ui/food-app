@@ -6,7 +6,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Alert, Modal, Platform, Pressable } from "react-native";
 
 import { supabase } from "@/lib/supabase";
 
@@ -42,6 +42,7 @@ const NOTE_CHIPS = [
 ];
 
 const naira = (n: number) => `₦${n.toLocaleString()}`;
+
 type SavedAddress = {
   id: number;
   label: string;
@@ -51,7 +52,6 @@ type SavedAddress = {
   is_default: boolean;
 };
 
-// the order stores the address as text, so old orders never change if the user edits an address later
 const addressText = (a: SavedAddress) =>
   [
     `${a.label}: ${a.address}`,
@@ -60,8 +60,10 @@ const addressText = (a: SavedAddress) =>
   ]
     .filter(Boolean)
     .join(" | ");
+
 const showError = (msg: string) =>
   Platform.OS === "web" ? window.alert(msg) : Alert.alert("Order failed", msg);
+
 export default function CheckoutScreen() {
   const [note, setNote] = useState("");
   const [activeChip, setActiveChip] = useState("Call on arrival");
@@ -73,7 +75,9 @@ export default function CheckoutScreen() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [pickingAddress, setPickingAddress] = useState(false);
 
-  // reload every time the screen is shown, so a newly added address appears
+  // NEW: controls the sign-in modal
+  const [showSignInModal, setShowSignInModal] = useState(false);
+
   useFocusEffect(
     useCallback(() => {
       let active = true;
@@ -90,7 +94,6 @@ export default function CheckoutScreen() {
           }
           const list = (data ?? []) as SavedAddress[];
           setAddresses(list);
-          // keep the current choice if it still exists, otherwise use the default
           setSelectedId((prev) =>
             list.some((a) => a.id === prev) ? prev : (list[0]?.id ?? null),
           );
@@ -108,17 +111,19 @@ export default function CheckoutScreen() {
   const [placing, setPlacing] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
 
-  // cart changed after an order was created -> make a fresh order next time
   useEffect(() => {
     setOrderId(null);
   }, [cart, selectedId]);
 
   const handlePlaceOrder = async () => {
+    // CHANGED: no silent redirect. Show the modal instead.
     if (!user) {
-      router.push("/(auth)/login");
+      setShowSignInModal(true);
       return;
     }
+
     if (placing) return;
+
     if (cart.length === 0) {
       showError("Your cart is empty.");
       return;
@@ -129,6 +134,7 @@ export default function CheckoutScreen() {
       router.push("/SavedAddressesScreen");
       return;
     }
+
     try {
       setPlacing(true);
       const id =
@@ -153,7 +159,6 @@ export default function CheckoutScreen() {
     }
   };
 
-  // Calculate total number of items (summing quantities)
   const totalItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const deliveryFee = 0;
@@ -413,9 +418,58 @@ export default function CheckoutScreen() {
           </View>
         </TouchableOpacity>
       </View>
+
+      {/* NEW: Sign-in modal */}
+      <Modal
+        visible={showSignInModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSignInModal(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setShowSignInModal(false)}
+        >
+          <Pressable
+            style={styles.modalCard}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="lock-closed" size={22} color={COLORS.green} />
+            </View>
+
+            <Text style={styles.modalTitle}>Sign in to place your order</Text>
+            <Text style={styles.modalSubtitle}>
+              Your cart, address, and notes are saved. Just sign in to finish.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalPrimaryBtn}
+              onPress={() => {
+                setShowSignInModal(false);
+                router.push({
+                  pathname: "/(auth)/login",
+                  params: { returnTo: "/checkout" },
+                });
+              }}
+            >
+              <Text style={styles.modalPrimaryText}>Sign in</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={() => setShowSignInModal(false)}
+            >
+              <Text style={styles.modalSecondaryText}>Continue browsing</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+// ... StepDot, SectionHeader, PaymentOption, BillRow unchanged ...
 
 function StepDot({
   label,
@@ -484,6 +538,7 @@ function SectionHeader({
     </View>
   );
 }
+
 function PaymentOption({
   icon,
   title,
@@ -741,7 +796,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.chipBg,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden", // Ensure image fits within rounded corners
+    overflow: "hidden",
   },
   orderPrice: {
     color: COLORS.text,
@@ -821,4 +876,73 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakarta-Regular",
   },
   placeOrderRight: { flexDirection: "row", alignItems: "center" },
+
+  // Modal styles
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 380,
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    padding: 24,
+    alignItems: "center",
+  },
+  modalIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.greenDim,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  modalTitle: {
+    color: COLORS.text,
+    fontSize: 17,
+    fontFamily: "PlusJakarta-Bold",
+    textAlign: "center",
+  },
+  modalSubtitle: {
+    color: COLORS.subtext,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 20,
+    fontFamily: "PlusJakarta-Regular",
+  },
+  modalPrimaryBtn: {
+    width: "100%",
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: COLORS.green,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalPrimaryText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontFamily: "PlusJakarta-Bold",
+  },
+  modalSecondaryBtn: {
+    width: "100%",
+    height: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+  },
+  modalSecondaryText: {
+    color: COLORS.subtext,
+    fontSize: 14,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
 });

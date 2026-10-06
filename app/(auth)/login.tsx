@@ -2,10 +2,9 @@ import { useAuth } from "@/lib/AuthContext";
 import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -40,7 +39,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
-
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const { continueAsGuest } = useAuth();
   const {
     control,
@@ -89,7 +88,7 @@ export default function Login() {
         text2: "Successfully logged in.",
       });
 
-      router.replace("/(tabs)");
+      router.replace((returnTo as any) ?? "/(tabs)");
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "Please try again later.";
@@ -276,8 +275,6 @@ export default function Login() {
               disabled={loading}
               style={styles.socialButton}
               onPress={() => showComingSoon("Google")}
-         
-              
             >
               <FontAwesome6 name="google" size={17} color="#4285F4" />
               <Text style={styles.socialText}>Google</Text>

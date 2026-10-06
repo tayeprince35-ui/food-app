@@ -75,19 +75,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_OUT") {
         // Manual logout OR expired session.
-        // Wipe account-scoped local data…
+        // Wipe account-scoped local data.
         useCartStore.getState().clearCart();
         useRecentSearchStore.getState().clearSearches();
         useFavoriteStore.getState().clearFavorites();
         useAddressStore.getState().clearStore();
 
-        // …and drop the user back into guest mode so they can keep browsing.
-        setIsGuest(true);
-        AsyncStorage.setItem(GUEST_KEY, "true").catch(() => {});
+        // Option B: do NOT enter guest mode. User goes to login.
+        setIsGuest(false);
+        AsyncStorage.removeItem(GUEST_KEY).catch(() => {});
       }
 
       if (session?.user) {
-        // Fires on SIGNED_IN, TOKEN_REFRESHED, USER_UPDATED
         useFavoriteStore.getState().loadFavorites(session.user.id);
       }
 
@@ -116,7 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoggingOut(true);
     try {
       await supabase.auth.signOut();
-      // The SIGNED_OUT listener above handles clearing + guest flag.
+      // The SIGNED_OUT listener above wiped local data.
+      // Send the user back to the login screen.
+      router.replace("/(auth)/login");
     } finally {
       setIsLoggingOut(false);
     }
