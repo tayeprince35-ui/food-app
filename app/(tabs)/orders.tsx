@@ -1,3 +1,4 @@
+// app/(tabs)/orders.tsx  (or wherever this lives)
 import GlassBackButton from "@/components/GlassBackButton";
 import { formatOrderDate } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
@@ -5,7 +6,8 @@ import { useCartStore } from "@/store/cartStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import LottieView from "lottie-react-native";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -250,6 +252,7 @@ export default function OrdersScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const addToCart = useCartStore((s) => s.addToCart);
+  const lottieRef = useRef<LottieView>(null);
 
   const fetchOrders = useCallback(async () => {
     const { data, error } = await supabase
@@ -264,7 +267,6 @@ export default function OrdersScreen() {
     setLoading(false);
   }, []);
 
-  // refetch every time the screen comes into view
   useFocusEffect(
     useCallback(() => {
       fetchOrders();
@@ -312,6 +314,30 @@ export default function OrdersScreen() {
     { key: "cancelled", label: "Cancelled" },
   ];
 
+  // contextual empty copy depending on which tab is active
+  const emptyCopy = useMemo(() => {
+    switch (tab) {
+      case "delivered":
+        return {
+          eyebrow: "DELIVERED · 0",
+          title: "No deliveries yet.",
+          sub: "Completed orders will show up here.",
+        };
+      case "cancelled":
+        return {
+          eyebrow: "CANCELLED · 0",
+          title: "Nothing cancelled.",
+          sub: "That's a good thing — keep it that way.",
+        };
+      default:
+        return {
+          eyebrow: "ORDERS · 0",
+          title: "No orders yet.",
+          sub: "When you place your first order, it'll appear right here.",
+        };
+    }
+  }, [tab]);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
@@ -353,7 +379,10 @@ export default function OrdersScreen() {
           renderItem={({ item }) => (
             <OrderCard order={item} onReorder={reorder} />
           )}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            visible.length === 0 && { flexGrow: 1 },
+          ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -363,39 +392,64 @@ export default function OrdersScreen() {
             />
           }
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Ionicons name="receipt-outline" size={48} color="#333740" />
-              <Text style={styles.emptyTitle}>No orders here</Text>
-              <Text style={styles.emptySub}>Your orders will appear here</Text>
+            <View style={styles.emptyWrap}>
+              <View style={styles.ambientGlow} />
+
+              <View style={styles.emptyIllustration}>
+                <LottieView
+                  ref={lottieRef}
+                  source={require("@/assets/lottie/empty-items.json")}
+                  autoPlay
+                  loop
+                  style={styles.lottie}
+                />
+              </View>
+
+              <Text style={styles.emptyEyebrow}>
+                {emptyCopy.eyebrow}
+              </Text>
+              <Text style={styles.emptyTitle}>{emptyCopy.title}</Text>
+              <Text style={styles.emptySub}>{emptyCopy.sub}</Text>
+
+              <TouchableOpacity
+                style={styles.emptyCta}
+                activeOpacity={0.85}
+                onPress={() => router.replace("/(tabs)")}
+              >
+                <Text style={styles.emptyCtaText}>Browse the menu</Text>
+                <Ionicons name="arrow-forward" size={16} color="#022C22" />
+              </TouchableOpacity>
             </View>
           }
           ListFooterComponent={
-            <View style={{ gap: 12, marginTop: 8 }}>
-              {activeOrder && (
+            visible.length > 0 ? (
+              <View style={{ gap: 12, marginTop: 8 }}>
+                {activeOrder && (
+                  <TouchableOpacity
+                    style={styles.primaryBtn}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/TrackOrder",
+                        params: { orderId: activeOrder.id },
+                      })
+                    }
+                  >
+                    <Text style={styles.primaryBtnText}>Track my order</Text>
+                    <Ionicons
+                      name="arrow-forward"
+                      size={18}
+                      color={COLORS.text}
+                    />
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
-                  style={styles.primaryBtn}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/TrackOrder",
-                      params: { orderId: activeOrder.id },
-                    })
-                  }
+                  style={styles.secondaryBtn}
+                  onPress={() => router.replace("/(tabs)")}
                 >
-                  <Text style={styles.primaryBtnText}>Track my order</Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={18}
-                    color={COLORS.text}
-                  />
+                  <Text style={styles.secondaryBtnText}>Back to home</Text>
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styles.secondaryBtn}
-                onPress={() => router.replace("/(tabs)")}
-              >
-                <Text style={styles.secondaryBtnText}>Back to home</Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            ) : null
           }
         />
       )}
@@ -455,7 +509,7 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakarta-SemiBold",
   },
 
-  listContent: { padding: 16, paddingBottom: 130 }, // room for the tab bar
+  listContent: { padding: 16, paddingBottom: 130 },
 
   card: {
     backgroundColor: COLORS.card,
@@ -548,17 +602,79 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakarta-SemiBold",
   },
 
-  empty: { alignItems: "center", paddingVertical: 60 },
-  emptyTitle: {
-    color: "#62666F",
-    fontSize: 16,
-    marginTop: 14,
+  // ---- Redesigned empty state ----
+  emptyWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    position: "relative",
+  },
+  ambientGlow: {
+    position: "absolute",
+    top: "22%",
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: COLORS.green,
+    opacity: 0.07,
+  },
+  emptyIllustration: {
+    width: 180,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  lottie: { width: "100%", height: "100%" },
+
+  emptyEyebrow: {
+    fontSize: 11,
     fontFamily: "PlusJakarta-SemiBold",
+    color: COLORS.green,
+    letterSpacing: 2,
+    marginBottom: 12,
+    opacity: 0.9,
+  },
+  emptyTitle: {
+    fontSize: 26,
+    fontFamily: "PlusJakarta-Bold",
+    color: "#F0FDF4",
+    textAlign: "center",
+    letterSpacing: -0.6,
+    lineHeight: 32,
+    marginBottom: 8,
   },
   emptySub: {
-    color: "#474B52",
-    fontSize: 13,
-    marginTop: 4,
+    fontSize: 14,
     fontFamily: "PlusJakarta-Regular",
+    color: "#6EE7B7",
+    textAlign: "center",
+    lineHeight: 21,
+    maxWidth: 280,
+    opacity: 0.75,
+    marginBottom: 28,
+  },
+  emptyCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: COLORS.green,
+    paddingVertical: 14,
+    paddingHorizontal: 26,
+    borderRadius: 999,
+    shadowColor: COLORS.green,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  emptyCtaText: {
+    color: "#022C22",
+    fontSize: 14,
+    fontFamily: "PlusJakarta-Bold",
+    letterSpacing: 0.2,
   },
 });

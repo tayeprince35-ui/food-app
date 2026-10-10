@@ -75,7 +75,10 @@ const PayOnlineScreen = () => {
 
     try {
       setPaying(true);
-      const callbackUrl = Linking.createURL("payment-result");
+      const callbackUrl =
+        Platform.OS === "web"
+          ? Linking.createURL("payment-result")
+          : "https://standard.paystack.co/close";
 
       const { data, error } = await supabase.functions.invoke("smooth-action", {
         body: { orderId: Number(orderId), callbackUrl },
@@ -89,14 +92,10 @@ const PayOnlineScreen = () => {
         return;
       }
 
-      await WebBrowser.openAuthSessionAsync(
-        data.authorization_url,
-        callbackUrl,
-      );
-      router.replace({
-        pathname: "/payment-result",
-        params: { reference: data.reference },
-      });
+      router.push({
+        pathname: "/paystack-checkout",
+        params: { url: data.authorization_url, reference: data.reference },
+      }); 
     } catch (e) {
       console.error("PAYMENT ERROR:", e);
       showError((e as Error).message);

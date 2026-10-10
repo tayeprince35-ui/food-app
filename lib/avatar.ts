@@ -1,4 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
+import { decode } from "base64-arraybuffer";
 import { supabase } from "./supabase";
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB
@@ -18,18 +19,26 @@ export async function pickAndUploadAvatar(
     allowsEditing: true,
     aspect: [1, 1],
     quality: 0.7,
+    base64: true,
   });
   if (result.canceled) return null;
 
   const asset = result.assets[0];
-  const contentType = asset.mimeType ?? "image/jpeg";
-  const ext = EXT_BY_MIME[contentType];
-  if (!ext) throw new Error("Please choose a JPG, PNG or WebP image.");
-  if (asset.fileSize && asset.fileSize > MAX_BYTES) {
-    throw new Error("Image is too large. Maximum size is 5MB.");
-  }
+  if (!asset.base64) throw new Error("No image data returned");
 
-  const buffer = await (await fetch(asset.uri)).arrayBuffer();
+  // Infer type from the URI if mimeType is missing or unsupported (e.g. HEIC)
+  const uriExt = asset.uri.split(".").pop()?.toLowerCase();
+  const contentType =
+    asset.mimeType && EXT_BY_MIME[asset.mimeType]
+      ? asset.mimeType
+      : uriExt === "png"
+        ? "image/png"
+        : uriExt === "webp"
+          ? "image/webp"
+          : "image/jpeg";
+  const ext = EXT_BY_MIME[contentType];
+
+  const buffer = decode(asset.base64);
   if (buffer.byteLength > MAX_BYTES) {
     throw new Error("Image is too large. Maximum size is 5MB.");
   }

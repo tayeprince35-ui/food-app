@@ -3,8 +3,10 @@ import { useAuth } from "@/lib/AuthContext";
 import { normalizePhone } from "@/lib/phone";
 import { useAddressStore } from "@/store/addressStore";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
+import LottieView from "lottie-react-native";
 import {
   ActivityIndicator,
   Alert,
@@ -62,6 +64,7 @@ export default function SavedAddressesScreen() {
 
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [form, setForm] = useState<Form>({
     label: "Home",
     address: "",
@@ -86,6 +89,51 @@ export default function SavedAddressesScreen() {
     });
     setErrors({});
     setShowForm(true);
+  };
+
+  // Fill the address input from GPS; the user can still edit it afterwards
+  const fillFromLocation = async () => {
+    if (locating) return;
+
+    try {
+      setLocating(true);
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        notify(
+          "Permission denied",
+          "Allow location access, or type your address.",
+        );
+        return;
+      }
+
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const [place] = await Location.reverseGeocodeAsync(pos.coords);
+      if (!place) {
+        notify("Not found", "Could not read your address. Please type it.");
+        return;
+      }
+
+      const parts = [
+        place.name,
+        place.street,
+        place.district,
+        place.city,
+        place.region,
+      ].filter(Boolean) as string[];
+      const unique = parts.filter((p, i) => parts.indexOf(p) === i);
+
+      setForm((f) => ({ ...f, address: unique.join(", ") }));
+      setErrors((e) => ({ ...e, address: undefined }));
+    } catch (err) {
+      console.error("Location error:", err);
+      notify("Could not get location", "Please type your address instead.");
+    } finally {
+      setLocating(false);
+    }
   };
 
   const handleSave = async () => {
@@ -266,6 +314,26 @@ export default function SavedAddressesScreen() {
                   </View>
 
                   <Text style={styles.inputLabel}>ADDRESS</Text>
+
+                  <TouchableOpacity
+                    style={styles.locationBtn}
+                    onPress={fillFromLocation}
+                    disabled={locating}
+                  >
+                    {locating ? (
+                      <ActivityIndicator size="small" color={COLORS.green} />
+                    ) : (
+                      <Ionicons
+                        name="navigate"
+                        size={14}
+                        color={COLORS.green}
+                      />
+                    )}
+                    <Text style={styles.locationBtnText}>
+                      {locating ? "Locating..." : "Use my current location"}
+                    </Text>
+                  </TouchableOpacity>
+
                   <TextInput
                     style={[styles.input, errors.address && styles.inputError]}
                     value={form.address}
@@ -490,6 +558,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 6,
     marginTop: 4,
+    fontFamily: "PlusJakarta-SemiBold",
+  },
+  locationBtn: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: COLORS.greenDim,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    marginBottom: 10,
+  },
+  locationBtnText: {
+    color: COLORS.green,
+    fontSize: 12,
     fontFamily: "PlusJakarta-SemiBold",
   },
   input: {

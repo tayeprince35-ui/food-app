@@ -199,8 +199,7 @@ export default function WelcomeScreen() {
             style={styles.bikeImage}
             contentFit="contain"
             cachePolicy="memory-disk"
-            transition={200}
-          />
+                    />
         </View>
       </View>
 

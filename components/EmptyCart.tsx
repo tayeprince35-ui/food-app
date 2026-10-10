@@ -1,3 +1,4 @@
+// components/EmptyCart.tsx
 import {
   Dimensions,
   StyleSheet,
@@ -5,15 +6,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Svg, { Circle, G, Path, Rect } from "react-native-svg";
+import LottieView from "lottie-react-native";
+import { useEffect, useRef } from "react";
 
 const { width } = Dimensions.get("window");
 
 /**
- * EmptyCartComponent - A stylish dark-green empty cart screen/component for React Native.
+ * EmptyCart - A stylish dark-green empty cart screen/component for React Native.
  *
  * Dependencies:
- *   npm install react-native-svg
+ *   npx expo install lottie-react-native
  */
 
 interface Props {
@@ -21,73 +23,31 @@ interface Props {
 }
 
 export default function EmptyCart({ onPressShopNow }: Props) {
+  const lottieRef = useRef<LottieView>(null);
+
+  useEffect(() => {
+    lottieRef.current?.play();
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* Visual Illustration Header */}
       <View style={styles.illustrationWrapper}>
         <View style={styles.glowBackground} />
 
-        {/* Custom SVG Empty Cart Illustration */}
-        <Svg width={180} height={180} viewBox="0 0 200 200" fill="none">
-          {/* Subtle background circles */}
-          <Circle cx="100" cy="100" r="75" fill="#143224" opacity="0.6" />
-          <Circle cx="100" cy="100" r="55" fill="#1A4330" opacity="0.8" />
-
-          {/* Decorative floating dots/sparks */}
-          <Circle cx="45" cy="65" r="4" fill="#34D399" opacity="0.7" />
-          <Circle cx="155" cy="55" r="3" fill="#A7F3D0" opacity="0.8" />
-          <Circle cx="160" cy="130" r="5" fill="#059669" opacity="0.6" />
-          <Circle cx="40" cy="125" r="2.5" fill="#34D399" opacity="0.5" />
-
-          {/* Cart Icon Body */}
-          <G transform="translate(40, 45)">
-            {/* Cart Handle & Base Lines */}
-            <Path
-              d="M10 15H28L38 65H105L118 28H35"
-              stroke="#A7F3D0"
-              strokeWidth="5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {/* Front Support Line */}
-            <Path
-              d="M38 65L32 80H100"
-              stroke="#059669"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-
-            {/* Wheels */}
-            <Circle cx="45" cy="92" r="8" fill="#10B981" />
-            <Circle cx="45" cy="92" r="3" fill="#064E3B" />
-            <Circle cx="90" cy="92" r="8" fill="#10B981" />
-            <Circle cx="90" cy="92" r="3" fill="#064E3B" />
-
-            {/* Empty Tag / Dotted Outline inside cart */}
-            <Rect
-              x="42"
-              y="34"
-              width="60"
-              height="24"
-              rx="6"
-              stroke="#34D399"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-              fill="none"
-              opacity="0.6"
-            />
-          </G>
-        </Svg>
+        {/* Lottie Animated Empty Cart */}
+        <LottieView
+          ref={lottieRef}
+          source={require("@/assets/lottie/empty-cart.json")}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
       </View>
 
       {/* Text Info */}
       <View style={styles.textSection}>
         <Text style={styles.title}>Your Cart is Empty</Text>
-        <Text style={styles.subtitle}>
-          Looks like you haven't added anything to your cart yet. Explore our
-          fresh collection and find what you love!
-        </Text>
       </View>
 
       {/* Action Button */}
@@ -101,6 +61,7 @@ export default function EmptyCart({ onPressShopNow }: Props) {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -114,14 +75,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 32,
     position: "relative",
+    width: 200,
+    height: 200,
   },
   glowBackground: {
     position: "absolute",
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     backgroundColor: "#10B981",
     opacity: 0.15,
+  },
+  lottie: {
+    width: 200,
+    height: 200,
   },
   textSection: {
     alignItems: "center",
@@ -158,7 +125,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   buttonText: {
-    color: "#022C22",
+    color: "#fbfcfc",
     fontSize: 16,
     fontFamily: "PlusJakarta-Bold",
     letterSpacing: 0.5,

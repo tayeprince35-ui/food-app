@@ -1,85 +1,61 @@
 import { typography } from "@/constants/typography";
 import { RestaurantAndMeal } from "@/data/food";
 import React from "react";
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FavoriteButton from "./FavoriteButton";
 
-// Mock data type based on your screenshot
-
-interface SearchRestaurantListProps {
-  restaurants: RestaurantAndMeal[];
+interface RestaurantListItemProps {
+  restaurant: RestaurantAndMeal;
   onRestaurantPress: (restaurant: RestaurantAndMeal) => void;
 }
 
-// Placeholder images to match the vibe of the screenshot
-
-const SearchRestaurantList: React.FC<SearchRestaurantListProps> = ({
-  restaurants,
+export const RestaurantListItem = React.memo(function RestaurantListItem({
+  restaurant: item,
   onRestaurantPress,
-}) => {
+}: RestaurantListItemProps) {
   return (
-    <FlatList
-      data={restaurants}
-      keyExtractor={(item) => item.id.toString()}
-       contentContainerStyle={styles.listContent}
-      renderItem={({ item, index }) => (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => onRestaurantPress(item)}
-          activeOpacity={0.7}
-        >
-          {/* Left: Image */}
-          <Image
-            source={{ uri: item.image }} // Fallback to mock images
-            style={styles.image}
-          />
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onRestaurantPress(item)}
+      activeOpacity={0.7}
+    >
+      {/* Left: Image */}
+      <Image source={{ uri: item.image }} style={styles.image} />
 
-          {/* Middle: Info */}
-          <View style={styles.infoContainer}>
-            <Text style={styles.name} numberOfLines={1}>
-              {item.restaurant}
-            </Text>
+      {/* Middle: Info */}
+      <View style={styles.infoContainer}>
+        <Text style={styles.name} numberOfLines={1}>
+          {item.restaurant}
+        </Text>
 
-            <View style={styles.ratingRow}>
-              <Text style={styles.ratingText}>★ {item.rating}</Text>
-              <Text style={styles.dot}>•</Text>
-              <Text style={styles.reviewText}>{item.rating}</Text>
-              <Text style={styles.dot}>•</Text>
-              <Text style={styles.timeText}>{item.deliveryTime}</Text>
+        <View style={styles.ratingRow}>
+          <Text style={styles.ratingText}>★ {item.rating}</Text>
+          <Text style={styles.dot}>•</Text>
+          <Text style={styles.reviewText}>{item.rating}</Text>
+          <Text style={styles.dot}>•</Text>
+          <Text style={styles.timeText}>{item.deliveryTime}</Text>
+        </View>
+
+        <View style={styles.tagsRow}>
+          {item.categories.map((tag, i) => (
+            <View key={i} style={styles.tag}>
+              <Text style={styles.tagText}>{tag}</Text>
             </View>
+          ))}
+        </View>
+      </View>
 
-            <View style={styles.tagsRow}>
-              {item.categories.map((tag, i) => (
-                <View key={i} style={styles.tag}>
-                  <Text style={styles.tagText}>{tag}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          {/* Right: Price/Favorite */}
-          <View style={styles.rightContainer}>
-            <TouchableOpacity style={styles.heartIcon}>
-              <FavoriteButton id={item.id.toString()} />
-            </TouchableOpacity>
-          </View>
+      {/* Right: Favorite */}
+      <View style={styles.rightContainer}>
+        <TouchableOpacity style={styles.heartIcon}>
+          <FavoriteButton id={item.id.toString()} />
         </TouchableOpacity>
-      )}
-    />
+      </View>
+    </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
-  listContent: {
-    paddingBottom: 20,
-  },
   card: {
     flexDirection: "row",
     marginBottom: 20,
@@ -110,7 +86,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   ratingText: {
-    color: "#FFD700", // Gold color for star
+    color: "#FFD700",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -147,27 +123,10 @@ const styles = StyleSheet.create({
   rightContainer: {
     alignItems: "flex-end",
     justifyContent: "space-between",
-    height: 90, // Match image height
+    height: 90,
     paddingVertical: 4,
   },
   heartIcon: {
     padding: 4,
   },
-  heartText: {
-    color: "#666",
-    fontSize: 22,
-  },
-  heartActive: {
-    color: "#FF3B30", // Red
-  },
-  priceText: {
-    color: "#00BC4F", // Green
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  priceFree: {
-    color: "#00BC4F",
-  },
 });
-
-export default SearchRestaurantList;

@@ -1,16 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 const RADIUS = 32;
+const TAB_BAR_HEIGHT = 65;
 
 export default function TabsLayout() {
   return (
     <Tabs
+      backBehavior="history"
       screenOptions={{
         headerShown: false,
-
+        tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: "#34C759",
         tabBarInactiveTintColor: "rgba(255,255,255,0.55)",
         tabBarShowLabel: true,
@@ -20,17 +22,16 @@ export default function TabsLayout() {
           left: 16,
           right: 16,
           bottom: 20,
-          height: 65,
+          height: TAB_BAR_HEIGHT,
 
           borderRadius: RADIUS,
           borderTopWidth: 0,
           borderWidth: 1,
           borderColor: "rgba(255,255,255,0.18)",
-
-          // Completely transparent base
           backgroundColor: "transparent",
 
           elevation: 0,
+          overflow: "hidden",
 
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 10 },
@@ -43,14 +44,13 @@ export default function TabsLayout() {
             <BlurView
               intensity={35}
               tint="dark"
-              blurMethod="dimezisBlurView"
               style={StyleSheet.absoluteFill}
             />
 
-            {/* Very subtle glass edge */}
-            <View style={styles.glassBorder} />
+            {/* Android has no native blur here, so darken it to look like glass */}
+            {Platform.OS === "android" && <View style={styles.androidTint} />}
 
-            {/* Tiny top reflection */}
+            <View style={styles.glassBorder} />
             <View style={styles.topHighlight} />
           </View>
         ),
@@ -70,25 +70,10 @@ export default function TabsLayout() {
         }}
       />
 
-      <Tabs.Screen
-        name="food/[id]"
-        options={{
-          href: null,
-        }}
-      />
+      <Tabs.Screen name="food/[id]" options={{ href: null }} />
+      <Tabs.Screen name="restaurant/[id]" options={{ href: null }} />
+      <Tabs.Screen name="search" options={{ href: null }} />
 
-      <Tabs.Screen
-        name="restaurant/[id]"
-        options={{
-          href: null,
-        }}
-      />
-   <Tabs.Screen
-        name="search"
-        options={{
-          href: null,
-        }}
-      />
       <Tabs.Screen
         name="cart"
         options={{
@@ -99,10 +84,10 @@ export default function TabsLayout() {
         }}
       />
 
-         <Tabs.Screen
+      <Tabs.Screen
         name="orders"
         options={{
-          title: "orders",
+          title: "Orders",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="business-outline" size={size} color={color} />
           ),
@@ -124,13 +109,18 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   glassClip: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     borderRadius: RADIUS,
     overflow: "hidden",
   },
 
+  androidTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(20,20,22,0.75)",
+  },
+
   glassBorder: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     borderRadius: RADIUS,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.14)",

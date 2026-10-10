@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const GetHelpScreen = () => {
   const handleChat = () => {
-    const phoneNumber = "+2348012345678";
+    const phoneNumber = "+2349025828588";
     const url = `whatsapp://send?phone=${phoneNumber}&text=Hello, I need help with my order.`;
 
     Linking.openURL(url).catch(() => {
@@ -22,7 +22,7 @@ const GetHelpScreen = () => {
   };
 
   const handleEmail = () => {
-    const email = "support@yourdeliveryapp.com";
+    const email = "godfreyajayigo25t@gmail.com";
     const subject = "Order Support Request";
     const url = `mailto:${email}?subject=${subject}`;
 

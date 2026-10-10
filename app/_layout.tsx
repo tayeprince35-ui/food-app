@@ -3,10 +3,11 @@ import {
   PlusJakartaSans_500Medium,
   PlusJakartaSans_600SemiBold,
   PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import { Slot } from "expo-router";
+import { Stack } from "expo-router";
 import Toast, {
   BaseToast,
   ErrorToast,
@@ -84,6 +85,7 @@ function InitialLayout() {
     "PlusJakarta-Medium": PlusJakartaSans_500Medium,
     "PlusJakarta-SemiBold": PlusJakartaSans_600SemiBold,
     "PlusJakarta-Bold": PlusJakartaSans_700Bold,
+    "PlusJakarta-ExtraBold": PlusJakartaSans_800ExtraBold,
     ...Ionicons.font,
     ...MaterialCommunityIcons.font,
   });
@@ -118,7 +120,12 @@ function InitialLayout() {
 
   return (
     <>
-      <Slot />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: "fade", // same on iOS and Android
+        }}
+      />
       <Toast config={toastConfig} />
     </>
   );

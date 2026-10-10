@@ -95,9 +95,9 @@ function TopHeader({ user }: { user: any }) {
     user?.user_metadata?.first_name?.charAt(0).toUpperCase() || "?";
 
   return (
-    <View className="px-5 pt-[60px] pb-2 flex-row justify-between items-center">
+    <View className="px-5 pt-14 pb-2 flex-row justify-between items-center">
       <View className="flex-row items-center gap-2">
-        <View className="w-8 h-8 rounded-full bg-[#34C759] items-center justify-center">
+        <View className="w-10 h-10 rounded-full bg-[#34C759] items-center justify-center">
           <Image
             source={Logo}
             style={{ width: 23, height: 23 }}
@@ -115,7 +115,7 @@ function TopHeader({ user }: { user: any }) {
           <Ionicons name="notifications-outline" size={24} color="#FFF" />
         </Pressable>
 
-        <View className="w-9 h-9 rounded-full bg-[#2C2C2E] items-center justify-center overflow-hidden">
+        <View className="w-9 h-9  rounded-full bg-[#2C2C2E] items-center justify-center overflow-hidden">
           {avatarUrl ? (
             <Image
               source={{ uri: avatarUrl }}
@@ -196,11 +196,15 @@ function CategoryTabs({
           Browse
         </Text>
 
-        <Pressable className="flex-row items-center gap-1">
+        <TouchableOpacity
+          className="flex-row items-center gap-1"
+          onPress={() => router.push("/searchwithcategory")}
+        >
           <Text style={typography.semiBold} className="text-[#34C759] text-xs">
             All categories
+            <Ionicons name="arrow-forward-outline" />
           </Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -265,67 +269,62 @@ function FlashDealsHeader() {
     </View>
   );
 }
-
 function FlashDealsList() {
   const randomizedFoods = useMemo(() => {
     return [...POPULAR_ITEMS].sort(() => Math.random() - 0.5);
   }, []);
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{
-        paddingHorizontal: 20,
-        paddingTop: 12,
-        gap: 12,
-      }}
-      className="mb-4"
-    >
-      {randomizedFoods.slice(0, 10).map((deal) => (
-        <TouchableOpacity
-          key={deal.id}
-          className="w-36"
-          onPress={() =>
-            router.push({
-              pathname: "/food/[id]",
-              params: {
-                id: String(deal.id),
-              },
-            })
-          }
-        >
-          <Image
-            source={{
-              uri: deal.image,
-            }}
-            style={{
-              width: 144,
-              height: 96,
-              borderRadius: 12,
-            }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            transition={100}
-          />
-
-          <Text
-            style={typography.semiBold}
-            className="text-white text-sm mt-2"
-            numberOfLines={1}
+    // Fixed-height wrapper so the FlatList header measures it correctly
+    <View style={{ height: 165, marginBottom: 16 }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          gap: 12,
+        }}
+      >
+        {randomizedFoods.slice(0, 10).map((deal) => (
+          <TouchableOpacity
+            key={deal.id}
+            style={{ width: 144 }}
+            onPress={() =>
+              router.push({
+                pathname: "/food/[id]",
+                params: { id: String(deal.id) },
+              })
+            }
           >
-            {deal.name}
-          </Text>
+            <Image
+              source={{ uri: deal.image }}
+              style={{ width: 144, height: 96, borderRadius: 12 }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={100}
+            />
 
-          <Text style={typography.bold} className="text-[#34C759] text-xs mt-1">
-            ₦{deal.price.toLocaleString()}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+            <Text
+              style={typography.semiBold}
+              className="text-white text-sm mt-2"
+              numberOfLines={1}
+            >
+              {deal.name}
+            </Text>
+
+            <Text
+              style={typography.bold}
+              className="text-[#34C759] text-xs mt-1"
+            >
+              ₦{deal.price.toLocaleString()}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
-
 /* -------------------------------------------------------------------------- */
 /* POPULAR NEAR AAU                                                           */
 /* -------------------------------------------------------------------------- */

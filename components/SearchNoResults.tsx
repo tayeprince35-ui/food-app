@@ -1,13 +1,14 @@
 // components/SearchNoResults.tsx
 import { typography } from "@/constants/typography";
 import { Ionicons } from "@expo/vector-icons";
+import LottieView from "lottie-react-native";
 import { useEffect, useRef } from "react";
 import {
-    Animated,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 type Props = {
@@ -23,6 +24,7 @@ export default function SearchNoResults({
 }: Props) {
   const fade = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(12)).current;
+  const lottieRef = useRef<LottieView>(null);
 
   useEffect(() => {
     fade.setValue(0);
@@ -39,17 +41,30 @@ export default function SearchNoResults({
         useNativeDriver: true,
       }),
     ]).start();
+
+    // replay lottie when the query changes
+    lottieRef.current?.reset();
+    lottieRef.current?.play();
   }, [query]);
 
   return (
     <Animated.View
       style={[styles.container, { opacity: fade, transform: [{ translateY }] }]}
     >
-      <View style={styles.iconWrap}>
-        <Ionicons name="search-outline" size={28} color="#555" />
-        <View style={styles.iconBadge}>
-          <Ionicons name="close" size={12} color="#111" />
-        </View>
+      <View style={styles.lottieWrap}>
+        <LottieView
+          ref={lottieRef}
+          source={require("@/assets/lottie/empty-search.json")}
+          autoPlay
+          loop
+          style={styles.lottie}
+          colorFilters={[
+            {
+              keypath: "**",
+              color: "#00BC4F",
+            },
+          ]}
+        />
       </View>
 
       <Text style={[typography.semiBold, styles.title]}>
@@ -82,29 +97,16 @@ const styles = StyleSheet.create({
     paddingVertical: 56,
     paddingHorizontal: 24,
   },
-  iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#1A1A1A",
-    borderWidth: 1,
-    borderColor: "#2A2A2A",
-    alignItems: "center",
-    justifyContent: "center",
+  lottieWrap: {
+    width: 160,
+    height: 160,
     marginBottom: 16,
-  },
-  iconBadge: {
-    position: "absolute",
-    bottom: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#00BC4F",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#111111",
+  },
+  lottie: {
+    width: "100%",
+    height: "100%",
   },
   title: {
     color: "#fff",

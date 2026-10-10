@@ -1,4 +1,3 @@
-import CustomAlert from "@/components/CustomAlert";
 import { pickAndUploadAvatar } from "@/lib/avatar";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -15,12 +14,13 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import LottieView from "lottie-react-native";
 import GlassBackButton from "@/components/GlassBackButton";
 import { useAuth } from "@/lib/AuthContext";
 import type { Href } from "expo-router";
 import { router } from "expo-router";
 import { useState } from "react";
+
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
 type MenuItemProps = {
@@ -51,7 +51,6 @@ const ProfileScreen = () => {
     isLoggingOut,
     isGuest,
   } = useAuth();
-  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
   const [localAvatar, setLocalAvatar] = useState<string | null>(null);
   const avatarUrl = localAvatar ?? userData?.user_metadata?.avatar_url ?? null;
   const [uploading, setUploading] = useState(false);
@@ -89,36 +88,43 @@ const ProfileScreen = () => {
   const avatarLetter = isGuest
     ? "G"
     : userData?.user_metadata?.first_name?.charAt(0).toUpperCase() || "?";
+
   const handleLogout = () => {
     if (isGuest) {
       router.push("/(auth)/login");
       return;
     }
-    setShowLogoutAlert(true);
+
+    Alert.alert(
+      "Log Out?",
+      "Are you sure you want to log out of your HeyBite account?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: () => logout(),
+        },
+      ],
+    );
   };
 
   if (isLoggingOut || (!userData && !isGuest))
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color="#4ADE80" />
+        <LottieView
+          source={require("@/assets/lottie/loader.json")}
+          autoPlay
+          loop
+          style={{ width: 80, height: 80 }}
+        />
       </SafeAreaView>
     );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
-      <CustomAlert
-        visible={showLogoutAlert}
-        type="warning"
-        title="Log Out?"
-        message="Are you sure you want to log out of your HeyBite account?"
-        buttonText="Log Out"
-        onPress={() => {
-          logout();
-          setShowLogoutAlert(false);
-        }}
-        onClose={() => setShowLogoutAlert(false)}
-      />
+
       {/* Header */}
       <View style={styles.header}>
         <GlassBackButton />
@@ -273,7 +279,7 @@ const ProfileScreen = () => {
           <View style={styles.divider} />
         </View>
 
-        {/* Support Section — always available */}
+        {/* Support Section */}
         <Text style={styles.sectionHeader}>SUPPORT</Text>
 
         <View style={styles.sectionContainer}>
@@ -299,11 +305,7 @@ const ProfileScreen = () => {
         </View>
 
         {/* Log Out / Log In */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          className="mb-20"
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons
             name={isGuest ? "log-in-outline" : "log-out-outline"}
             size={20}
@@ -333,7 +335,6 @@ const MenuItem = ({
     style={[styles.menuItem, disabled && styles.disabledRow]}
     onPress={() => {
       if (disabled) {
-        router.push("/(auth)/login");
         return;
       }
       href && router.push(href);
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
 
   avatarImage: { width: "100%", height: "100%" },
   avatarOverlay: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2E8B57",
     justifyContent: "center",
     alignItems: "center",
-    overflow: "hidden", // add this
+    overflow: "hidden",
   },
   avatarText: { color: "#FFF", fontSize: 28, fontFamily: "PlusJakarta-Bold" },
   userDetails: { flex: 1 },
@@ -601,6 +602,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     marginTop: 10,
+    marginBottom: 60,
     gap: 8,
   },
   logoutText: {

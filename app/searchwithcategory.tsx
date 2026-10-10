@@ -1,5 +1,7 @@
 import DishDetailModal from "@/components/DishDetailModal";
+import RecentSearches from "@/components/RecentSearches";
 import RestaurantDetailModal from "@/components/RestaurantDetailModal";
+import SearchEmptyState from "@/components/SearchEmptyState";
 import { FoodGridItem } from "@/components/SearchFoodGrid";
 import SearchNoResults from "@/components/SearchNoResults";
 import { RestaurantListItem } from "@/components/SearchRestaurantList";
@@ -43,9 +45,7 @@ export default function Search(): React.JSX.Element {
   const [sortBy, setSortBy] = useState<SortOption>("default");
   const [focused, setFocused] = useState(false);
   const [query, setQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"restaurants" | "dishes">(
-    "restaurants",
-  );
+  const [activeTab, setActiveTab] = useState<"restaurants" | "dishes">("dishes");
   const addSearch = useRecentSearchStore((s) => s.addSearch);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -54,13 +54,8 @@ export default function Search(): React.JSX.Element {
   const [selectedDish, setSelectedDish] = useState<Foods | null>(null);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedQuery(query);
-    }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    const handler = setTimeout(() => setDebouncedQuery(query), 500);
+    return () => clearTimeout(handler);
   }, [query]);
 
   const filteredFoods = useMemo(() => {
@@ -71,7 +66,6 @@ export default function Search(): React.JSX.Element {
           (CATEGORY_MAP[activeCategory] ?? []).includes(food.category)) &&
         (!q || food.name.toLowerCase().includes(q)),
     );
-
     if (sortBy === "rating") result.sort((a, b) => b.rating - a.rating);
     if (sortBy === "fastest")
       result.sort(
@@ -90,7 +84,6 @@ export default function Search(): React.JSX.Element {
         (!activeCategory || r.categories.includes(activeCategory)) &&
         (!q || r.restaurant.toLowerCase().includes(q)),
     );
-
     if (sortBy === "rating") result.sort((a, b) => b.rating - a.rating);
     if (sortBy === "fastest")
       result.sort(
@@ -103,6 +96,7 @@ export default function Search(): React.JSX.Element {
     return result;
   }, [debouncedQuery, activeCategory, sortBy]);
 
+  const showResults = debouncedQuery.trim() !== "" || activeCategory !== null;
   const isDishesTab = activeTab === "dishes";
   const resultCount = isDishesTab
     ? filteredFoods.length
@@ -124,10 +118,12 @@ export default function Search(): React.JSX.Element {
     [addSearch, debouncedQuery],
   );
 
-  const listData: ResultItem[] = useMemo(() => {
-    if (isDishesTab) return filteredFoods.map((f) => ({ kind: "food", ...f }));
-    return filteredRestaurants.map((r) => ({ kind: "restaurant", ...r }));
-  }, [isDishesTab, filteredFoods, filteredRestaurants]);
+  // Data source for the single FlatList
+  const listData: ResultItem[] = !showResults
+    ? []
+    : isDishesTab
+      ? filteredFoods.map((f) => ({ kind: "food", ...f }))
+      : filteredRestaurants.map((r) => ({ kind: "restaurant", ...r }));
 
   const renderItem = useCallback(
     ({ item }: { item: ResultItem }) => {
@@ -146,9 +142,9 @@ export default function Search(): React.JSX.Element {
 
   const keyExtractor = useCallback((item: ResultItem) => String(item.id), []);
 
-  const listHeader = (
+  // The header is now a sibling of the list items rather than a parent ScrollView
+  const ListHeader = (
     <View>
-      {/* Search Header */}
       <View style={styles.searchRow}>
         <View style={[styles.searchContainer, focused && styles.inputFocused]}>
           <Ionicons
@@ -157,13 +153,12 @@ export default function Search(): React.JSX.Element {
             color="#f8f6f6"
             style={styles.searchIcon}
           />
-
           <TextInput
             value={query}
             returnKeyType="search"
             onSubmitEditing={() => addSearch(query)}
             onChangeText={setQuery}
-            placeholder="Search dishes..."
+            placeholder="Search Heybite..."
             placeholderTextColor="#aaa"
             autoFocus
             style={[typography.regular, styles.searchInput]}
@@ -181,37 +176,51 @@ export default function Search(): React.JSX.Element {
         </TouchableOpacity>
       </View>
 
-      {activeCategory && (
-        <TouchableOpacity
-          onPress={() => setActiveCategory(null)}
-          style={styles.categoryChip}
-        >
-          <Text style={styles.categoryChipText}>{activeCategory} ✕</Text>
-        </TouchableOpacity>
-      )}
+      {!showResults ? (
+        <>
+          <RecentSearches
+            onSelect={(text) => {
+              setQuery(text);
+              setDebouncedQuery(text);
+            }}
+          />
+          <SearchEmptyState
+            onTrendingPress={(text) => setQuery(text)}
+            onCategoryPress={(category) => setActiveCategory(category)}
+          />
+        </>
+      ) : (
+        <>
+          {activeCategory && (
+            <TouchableOpacity
+              onPress={() => setActiveCategory(null)}
+              style={styles.categoryChip}
+            >
+              <Text style={styles.categoryChipText}>{activeCategory} ✕</Text>
+            </TouchableOpacity>
+          )}
 
-      {/* Results Header */}
-      <SearchResultsHeader resultCount={resultCount} />
+          <SearchResultsHeader resultCount={resultCount} />
 
-      {/* Tabs */}
-      <SearchTabs
-        activeTab={activeTab}
-        onTabChange={(tab) => {
-          setActiveTab(tab);
-          if (tab === "restaurants" && sortBy === "price")
-            setSortBy("default");
-        }}
-      />
+          <SearchTabs
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setActiveTab(tab);
+              if (tab === "restaurants" && sortBy === "price")
+                setSortBy("default");
+            }}
+          />
 
-      {/* Sort */}
-      <SearchSort
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        showPrice={isDishesTab}
-      />
+          <SearchSort
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            showPrice={isDishesTab}
+          />
 
-      {resultCount === 0 && (
-        <SearchNoResults query={debouncedQuery || activeCategory || ""} />
+          {resultCount === 0 && (
+            <SearchNoResults query={debouncedQuery || activeCategory || ""} />
+          )}
+        </>
       )}
     </View>
   );
@@ -220,13 +229,16 @@ export default function Search(): React.JSX.Element {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.screen}>
         <FlatList
-          key={isDishesTab ? "dishes-2col" : "single-col"}
+          // Remount when column count switches so numColumns actually applies
+          key={showResults && isDishesTab ? "dishes-2col" : "single-col"}
           data={listData}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          numColumns={isDishesTab ? 2 : 1}
-          columnWrapperStyle={isDishesTab ? styles.columnWrapper : undefined}
-          ListHeaderComponent={listHeader}
+          numColumns={showResults && isDishesTab ? 2 : 1}
+          columnWrapperStyle={
+            showResults && isDishesTab ? styles.columnWrapper : undefined
+          }
+          ListHeaderComponent={ListHeader}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -237,13 +249,11 @@ export default function Search(): React.JSX.Element {
         />
       </View>
 
-      {/* Detail Modals */}
       <RestaurantDetailModal
         visible={!!selectedRestaurant}
         restaurant={selectedRestaurant}
         onClose={() => setSelectedRestaurant(null)}
       />
-
       <DishDetailModal
         visible={!!selectedDish}
         dish={selectedDish}
@@ -254,10 +264,7 @@ export default function Search(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#111111",
-  },
+  safeArea: { flex: 1, backgroundColor: "#111111" },
   screen: {
     flex: 1,
     backgroundColor: "#111111",
@@ -276,18 +283,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginBottom: 12,
   },
-  categoryChipText: {
-    color: "#fff",
-    fontSize: 14,
-  },
-  content: {
-    paddingHorizontal: 15,
-    paddingTop: 12,
-    paddingBottom: 100,
-  },
-  columnWrapper: {
-    justifyContent: "space-between",
-  },
+  categoryChipText: { color: "#fff", fontSize: 14 },
+  content: { paddingHorizontal: 15, paddingTop: 12, paddingBottom: 100 },
+  columnWrapper: { justifyContent: "space-between" },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -317,18 +315,12 @@ const styles = StyleSheet.create({
     height: "100%",
     outlineStyle: "none" as any,
   },
-  clearIcon: {
-    color: "#888",
-    fontSize: 18,
-    marginLeft: 8,
-  },
+  clearIcon: { color: "#888", fontSize: 18, marginLeft: 8 },
   cancelText: {
     color: "#00BC4F",
     fontSize: 16,
     marginLeft: 15,
     fontFamily: typography.medium.fontFamily,
   },
-  inputFocused: {
-    borderColor: "#00BC4F",
-  },
+  inputFocused: { borderColor: "#00BC4F" },
 });

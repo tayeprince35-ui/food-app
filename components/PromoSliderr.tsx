@@ -14,24 +14,33 @@ import {
 
 const AUTO_SLIDE_INTERVAL = 4500;
 
-// --- Image Assets ---
+/* -------------------------------------------------------------------------- */
+/* ASSETS                                                                     */
+/* -------------------------------------------------------------------------- */
+
 const ScooterImage = require("@/assets/icons/container.png");
 const DiscountImage = require("@/assets/icons/gift2.png");
 const ChefHatImage = require("@/assets/icons/gift.png");
 
-// --- Image Size Map ---
-const IMAGE_SIZES: Record<number, { width: number; height: number }> = {
-  0: { width: 140, height: 140 },
-  1: { width: 200, height: 200 },
-  2: { width: 160, height: 160 },
-};
-
-// --- Dot Colors Map ---
 const DOT_COLORS = ["#E63946", "#FF7A00", "#6C4EE3"];
 
-// --- Shared Promo Card ---
+/* -------------------------------------------------------------------------- */
+/* SHARED PROMO CARD                                                          */
+/* -------------------------------------------------------------------------- */
+
+type PromoCardProps = {
+  colors: [string, string, ...string[]];
+  badge: string;
+  title: string;
+  code: string;
+  ctaText: string;
+  ctaColor: string;
+  imageSource: any;
+  /** Pixel size the illustration will occupy (square). */
+  illustrationSize: number;
+};
+
 function PromoCard({
-  index,
   colors,
   badge,
   title,
@@ -39,14 +48,15 @@ function PromoCard({
   ctaText,
   ctaColor,
   imageSource,
-}: any) {
-  const imageSize = IMAGE_SIZES[index] || { width: 140, height: 140 };
-
+  illustrationSize,
+}: PromoCardProps) {
   return (
     <LinearGradient colors={colors} style={styles.card}>
+      {/* Decorative background circles */}
       <View style={[styles.ball, styles.ballTop]} />
       <View style={[styles.ball, styles.ballBottom]} />
 
+      {/* Text column */}
       <View style={styles.textContainer}>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{badge}</Text>
@@ -61,10 +71,11 @@ function PromoCard({
         </TouchableOpacity>
       </View>
 
+      {/* Illustration, sized relative to card */}
       <View style={styles.illustrationContainer}>
         <Image
           source={imageSource}
-          style={[styles.illustrationImage, imageSize]}
+          style={{ width: illustrationSize, height: illustrationSize }}
           resizeMode="contain"
         />
       </View>
@@ -72,11 +83,13 @@ function PromoCard({
   );
 }
 
-// --- Cards ---
-function DeliveryCard({ index }: { index: number }) {
+/* -------------------------------------------------------------------------- */
+/* SLIDES                                                                     */
+/* -------------------------------------------------------------------------- */
+
+function DeliveryCard({ illustrationSize }: { illustrationSize: number }) {
   return (
     <PromoCard
-      index={index}
       colors={["#FF6B4A", "#E63946"]}
       badge="🔥 LIMITED TIME"
       title={`Free delivery\non first order!`}
@@ -84,14 +97,14 @@ function DeliveryCard({ index }: { index: number }) {
       ctaText="Order now"
       ctaColor="#E63946"
       imageSource={ScooterImage}
+      illustrationSize={illustrationSize}
     />
   );
 }
 
-function DiscountCard({ index }: { index: number }) {
+function DiscountCard({ illustrationSize }: { illustrationSize: number }) {
   return (
     <PromoCard
-      index={index}
       colors={["#FFB300", "#FF7A00"]}
       badge="💸 THIS WEEK"
       title={`30% off\norders above ₦5k!`}
@@ -99,14 +112,14 @@ function DiscountCard({ index }: { index: number }) {
       ctaText="Grab deal"
       ctaColor="#FF7A00"
       imageSource={DiscountImage}
+      illustrationSize={illustrationSize}
     />
   );
 }
 
-function NewItemsCard({ index }: { index: number }) {
+function NewItemsCard({ illustrationSize }: { illustrationSize: number }) {
   return (
     <PromoCard
-      index={index}
       colors={["#6C4EE3", "#9B5CFF"]}
       badge="✨ JUST ADDED"
       title={`New restaurants\nnow on HeyBite!`}
@@ -114,13 +127,17 @@ function NewItemsCard({ index }: { index: number }) {
       ctaText="Browse now"
       ctaColor="#6C4EE3"
       imageSource={ChefHatImage}
+      illustrationSize={illustrationSize}
     />
   );
 }
 
 const SLIDES = [DeliveryCard, DiscountCard, NewItemsCard];
 
-// --- Slider ---
+/* -------------------------------------------------------------------------- */
+/* SLIDER                                                                     */
+/* -------------------------------------------------------------------------- */
+
 function PromoSlider() {
   const { width } = useWindowDimensions();
 
@@ -130,13 +147,22 @@ function PromoSlider() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  // Card interior width after the horizontal cardPadding
+  const cardInnerWidth = width - 32;
+
+  // Illustration grows with card width but never dominates the text.
+  // 0.30 keeps roughly a 70/30 text-to-image split on every phone size.
+  const illustrationSize = Math.max(
+    88,
+    Math.min(cardInnerWidth * 0.3, 120),
+  );
+
   const goTo = useCallback((i: number) => {
     indexRef.current = i;
     setIndex(i);
     listRef.current?.scrollToIndex({ index: i, animated: true });
   }, []);
 
-  // Auto-slide
   useEffect(() => {
     if (paused) return;
 
@@ -147,7 +173,6 @@ function PromoSlider() {
     return () => clearInterval(id);
   }, [paused, goTo]);
 
-  // Update the active dot after a swipe settles
   const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const i = Math.round(e.nativeEvent.contentOffset.x / width);
     indexRef.current = i;
@@ -172,10 +197,10 @@ function PromoSlider() {
         })}
         onScrollBeginDrag={() => setPaused(true)}
         onMomentumScrollEnd={onMomentumEnd}
-        renderItem={({ item: Slide, index: i }) => (
+        renderItem={({ item: Slide }) => (
           <View style={{ width }}>
             <View style={styles.cardPadding}>
-              <Slide index={i} />
+              <Slide illustrationSize={illustrationSize} />
             </View>
           </View>
         )}
@@ -203,9 +228,14 @@ function PromoSlider() {
 
 export default React.memo(PromoSlider);
 
+/* -------------------------------------------------------------------------- */
+/* STYLES                                                                     */
+/* -------------------------------------------------------------------------- */
+
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
 
   cardPadding: {
@@ -213,11 +243,12 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    height: 220,
+    height: 232,
     borderRadius: 20,
-    padding: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
     flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "center",
     overflow: "hidden",
   },
 
@@ -225,21 +256,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     zIndex: 2,
+    paddingRight: 8,
   },
 
   illustrationContainer: {
     justifyContent: "center",
     alignItems: "center",
-    marginLeft: 10,
-    marginRight: -10,
     zIndex: 2,
+    // No negative margins — the illustration lives inside its own column.
   },
 
-  illustrationImage: {
-    width: 140,
-    height: 140,
-  },
-
+  /* Background circles */
   ball: {
     position: "absolute",
     borderRadius: 999,
@@ -260,52 +287,56 @@ const styles = StyleSheet.create({
     right: 40,
   },
 
+  /* Text */
   badge: {
     alignSelf: "flex-start",
     backgroundColor: "rgba(255,255,255,0.25)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
-    marginBottom: 12,
+    marginBottom: 14,
   },
 
   badgeText: {
     color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
 
   title: {
     color: "#fff",
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
-    lineHeight: 24,
+    lineHeight: 23,
   },
 
   code: {
     color: "rgba(255,255,255,0.9)",
-    fontSize: 13,
-    marginTop: 8,
-    marginBottom: 14,
+    fontSize: 12,
+    marginTop: 10,
+    marginBottom: 16,
   },
 
   cta: {
     backgroundColor: "#fff",
     alignSelf: "flex-start",
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: 30,
   },
 
   ctaText: {
     fontWeight: "700",
+    fontSize: 13,
   },
 
+  /* Pagination */
   dots: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 14,
     gap: 6,
   },
 

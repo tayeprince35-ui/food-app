@@ -13,14 +13,12 @@ interface AddToCartButtonProps {
   food: any; // Replace 'any' with your Food/Dish type if you have one exported
   quantity?: number;
   style?: any;
-  label?: String;
 }
 
 export default function AddToCartButton({
   food,
   quantity = 1,
   style,
-  label,
 }: AddToCartButtonProps) {
   const addToCart = useCartStore((state) => state.addToCart);
   const scaleValue = useRef(new Animated.Value(1)).current;
@@ -64,7 +62,6 @@ export default function AddToCartButton({
         onPress={handleAddToCart}
       >
         <View style={styles.addButton}>
-          <Text>{label}</Text>
           <Ionicons name="add" size={20} color="#FFF" />
         </View>
       </TouchableOpacity>

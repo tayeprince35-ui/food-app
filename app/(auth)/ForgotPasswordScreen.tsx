@@ -1,8 +1,11 @@
+// app/(auth)/ForgotPasswordScreen.tsx
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,8 +16,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
@@ -23,12 +24,10 @@ const ForgotImage = require("./../../assets/icons/forgot.png");
 const SCREEN_BG = "#151515";
 const CARD_BG = "#151515";
 const BORDER = "#383838";
-const GREEN = "#238046";
 const MUTED = "#969696";
 const WHITE = "#F8F8F8";
 
 export default function ForgotPasswordScreen() {
-
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -138,16 +137,27 @@ export default function ForgotPasswordScreen() {
               </View>
             </View>
 
+            {/* SEND CODE BUTTON — same style as login */}
             <Pressable
-              disabled={loading}
               onPress={handleSendCode}
-              style={({ pressed }) => [
-                styles.sendButton,
-                loading && styles.sendButtonDisabled,
-                pressed && !loading && styles.pressed,
-              ]}
+              disabled={loading}
+              style={styles.continueWrap}
             >
-              <Text style={styles.sendButtonText}>Send Code</Text>
+              <LinearGradient
+                colors={["#2A9051", "#1C733C"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[
+                  styles.continueButton,
+                  loading && styles.continueButtonDisabled,
+                ]}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.continueText}>Send Code</Text>
+                )}
+              </LinearGradient>
             </Pressable>
           </View>
 
@@ -159,9 +169,7 @@ export default function ForgotPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
+  flex: { flex: 1 },
 
   safeArea: {
     flex: 1,
@@ -258,28 +266,28 @@ const styles = StyleSheet.create({
     outlineStyle: "none" as any,
   },
 
-  sendButton: {
-    height: 46,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 23,
-    backgroundColor: GREEN,
+  /* -------------------- Send Code button (matches login) -------------------- */
+  continueWrap: {
     marginTop: 4,
   },
 
-  sendButtonDisabled: {
+  continueButton: {
+    height: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  continueButtonDisabled: {
     opacity: 0.6,
   },
 
-  sendButtonText: {
+  continueText: {
     color: "#F5F5F5",
     fontSize: 14,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
-  pressed: {
-    opacity: 0.82,
-  },
+  /* -------------------------------------------------------------------------- */
 
   homeIndicator: {
     width: 112,

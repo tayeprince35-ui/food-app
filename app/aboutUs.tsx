@@ -21,7 +21,7 @@ const { width } = Dimensions.get("window");
 
 // Color Palette Definition: Deep Emerald Dark Theme
 const COLORS = {
-  bgDark: "#030E0A", // Ultra-dark rich emerald black
+  bgDark: "#030E0A",
   cardBg: "rgba(9, 29, 22, 0.6)",
   borderEmerald: "rgba(46, 204, 113, 0.25)",
   emeraldPrimary: "#2ECC71",
@@ -76,6 +76,21 @@ export default function AboutUsScreen() {
     },
   ];
 
+  const TABS = [
+    { key: "mission", label: "Our Mission" },
+    { key: "sustainability", label: "Eco Commitment" },
+    { key: "craft", label: "The Culinary Craft" },
+  ] as const;
+
+  const CONTENT: Record<string, string> = {
+    mission:
+      "At HeyBite, we believe eating well shouldn't mean compromising the planet. We connect local urban farms and premier culinary spaces to deliver wholesome, vibrant meals straight to your doorstep.",
+    sustainability:
+      "Every HeyBite delivery uses 100% electric transport and zero single-use plastics. Our custom eco-insulated thermal bags guarantee peak temperature without ecological impact.",
+    craft:
+      "Our chefs curate seasonal menus using organic harvests. Every recipe is meticulously prepared to give you a bite that feels as good as it tastes.",
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -84,7 +99,7 @@ export default function AboutUsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         bounces={true}
-      >     
+      >
         {/* HERO SECTION */}
         <View style={styles.heroContainer}>
           <Image
@@ -97,9 +112,9 @@ export default function AboutUsScreen() {
             colors={["transparent", "rgba(3, 14, 10, 0.65)", COLORS.bgDark]}
             style={styles.heroGradient}
           />
-            <View style={styles.backButton}>
-    <GlassBackButton />
-  </View>
+          <View style={styles.backButton}>
+            <GlassBackButton />
+          </View>
 
           <View style={styles.heroTextContainer}>
             <View style={styles.badge}>
@@ -114,90 +129,42 @@ export default function AboutUsScreen() {
           </View>
         </View>
 
-        {/* STATS OVERLAY SECTION */}
-        <View style={styles.statsGrid}></View>
-
         {/* PHILOSOPHY & STORY */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTag}>OUR ESSENCE</Text>
           <Text style={styles.sectionTitle}>Nourishing You & Nature</Text>
 
-          {/* Tab Selector */}
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === "mission" && styles.activeTabButton,
-              ]}
-              onPress={() => setActiveTab("mission")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "mission" && styles.activeTabText,
-                ]}
-              >
-                Our Mission
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === "sustainability" && styles.activeTabButton,
-              ]}
-              onPress={() => setActiveTab("sustainability")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "sustainability" && styles.activeTabText,
-                ]}
-              >
-                Eco Commitment
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === "craft" && styles.activeTabButton,
-              ]}
-              onPress={() => setActiveTab("craft")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "craft" && styles.activeTabText,
-                ]}
-              >
-                The Culinary Craft
-              </Text>
-            </TouchableOpacity>
+          {/* Tab Selector — light pill row with underline indicator */}
+          <View style={styles.tabRow}>
+            {TABS.map((t) => {
+              const active = activeTab === t.key;
+              return (
+                <TouchableOpacity
+                  key={t.key}
+                  activeOpacity={0.7}
+                  style={styles.tabButton}
+                  onPress={() => setActiveTab(t.key)}
+                >
+                  <Text
+                    style={[styles.tabText, active && styles.tabTextActive]}
+                  >
+                    {t.label}
+                  </Text>
+                  <View
+                    style={[
+                      styles.tabIndicator,
+                      active && styles.tabIndicatorActive,
+                    ]}
+                  />
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* Dynamic Tab Content Box */}
+          {/* Content card */}
           <View style={styles.glassCard}>
-            {activeTab === "mission" && (
-              <Text style={styles.cardParagraph}>
-                At HeyBite, we believe eating well shouldn’t mean compromising
-                the planet. We connect local urban farms and premier culinary
-                spaces to deliver wholesome, vibrant meals straight to your
-                doorstep.
-              </Text>
-            )}
-            {activeTab === "sustainability" && (
-              <Text style={styles.cardParagraph}>
-                Every HeyBite delivery uses 100% electric transport and zero
-                single-use plastics. Our custom eco-insulated thermal bags
-                guarantee peak temperature without ecological impact.
-              </Text>
-            )}
-            {activeTab === "craft" && (
-              <Text style={styles.cardParagraph}>
-                Our chefs curate seasonal menus using organic harvests. Every
-                recipe is meticulously prepared to give you a bite that feels as
-                good as it tastes.
-              </Text>
-            )}
+            <View style={styles.glassCardAccent} />
+            <Text style={styles.cardParagraph}>{CONTENT[activeTab]}</Text>
           </View>
         </View>
 
@@ -359,7 +326,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 36,
-    fontFamily: "PlusJakarta-Bold", // Mapped from '900'
+    fontFamily: "PlusJakarta-Bold",
     color: COLORS.textLight,
     letterSpacing: -0.5,
     marginBottom: 8,
@@ -370,35 +337,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontFamily: "PlusJakarta-Regular",
   },
-
-  /* STATS */
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 16,
-    gap: 12,
-    marginTop: -20,
-    zIndex: 10,
-  },
-  statCard: {
-    width: (width - 44) / 2,
-    padding: 20,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: COLORS.borderEmerald,
-    alignItems: "center",
-  },
-  statValue: {
-    fontSize: 26,
-    fontFamily: "PlusJakarta-Bold",
-    color: COLORS.emeraldBright,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    textAlign: "center",
-    fontFamily: "PlusJakarta-Medium",
+  backButton: {
+    position: "absolute",
+    top: 35,
+    left: 20,
+    zIndex: 20,
   },
 
   /* SECTIONS GENERAL */
@@ -417,58 +360,68 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontFamily: "PlusJakarta-Bold",
     color: COLORS.textLight,
-    marginBottom: 20,
+    marginBottom: 24,
   },
 
-  /* TABS & GLASS CARD */
-  tabContainer: {
+  /* ---- OUR ESSENCE: tabs + card (redesigned) ---- */
+  tabRow: {
     flexDirection: "row",
-    backgroundColor: "rgba(9, 35, 25, 0.6)",
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(46, 204, 113, 0.15)",
+    gap: 24,
+    marginBottom: 22,
+    paddingHorizontal: 4,
   },
   tabButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 10,
-  },
-  activeTabButton: {
-    backgroundColor: "rgba(0, 255, 135, 0.15)",
-    borderWidth: 1,
-    borderColor: COLORS.emeraldBright,
+    alignItems: "flex-start",
+    paddingBottom: 10,
   },
   tabText: {
     color: COLORS.textMuted,
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: "PlusJakarta-SemiBold",
+    marginBottom: 8,
   },
-  activeTabText: {
+  tabTextActive: {
     color: COLORS.textLight,
     fontFamily: "PlusJakarta-Bold",
   },
-  backButton: {
-  position: "absolute",
-  top: 35,
-  left: 20,
-  zIndex: 20,
-},
+  tabIndicator: {
+    height: 2,
+    width: "100%",
+    borderRadius: 2,
+    backgroundColor: "transparent",
+  },
+  tabIndicatorActive: {
+    backgroundColor: COLORS.emeraldBright,
+    shadowColor: COLORS.emeraldBright,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+  },
   glassCard: {
     backgroundColor: COLORS.cardBg,
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 22,
+    paddingVertical: 24,
+    paddingHorizontal: 22,
     borderWidth: 1,
     borderColor: COLORS.borderEmerald,
+    overflow: "hidden",
+  },
+  glassCardAccent: {
+    position: "absolute",
+    top: 0,
+    left: 22,
+    right: 22,
+    height: 1,
+    backgroundColor: "rgba(0, 255, 135, 0.35)",
   },
   cardParagraph: {
-    color: "#B5C9BE",
+    color: "#C1D3C8",
     fontSize: 15,
-    lineHeight: 24,
+    lineHeight: 26,
     fontFamily: "PlusJakarta-Regular",
+    letterSpacing: 0.1,
   },
+  /* ------------------------------------------------ */
 
   /* VALUES */
   valuesList: {
@@ -564,7 +517,7 @@ const styles = StyleSheet.create({
   },
   ctaTitle: {
     fontSize: 22,
-    fontFamily: "PlusJakarta-bold",
+    fontFamily: "PlusJakarta-Bold",
     color: COLORS.textLight,
     textAlign: "center",
     marginBottom: 8,

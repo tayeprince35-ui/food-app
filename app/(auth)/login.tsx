@@ -2,6 +2,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -31,7 +32,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const SCREEN_BG = "#151515";
 const CARD_BG = "#151515";
 const BORDER = "#383838";
-const GREEN = "#238046";
 const MUTED = "#969696";
 const WHITE = "#F8F8F8";
 
@@ -249,20 +249,27 @@ export default function Login() {
               <Text style={styles.forgotPasswordText}>Forgot password?</Text>
             </Pressable>
 
+            {/* SIGN IN (same style as signup Continue button) */}
             <Pressable
-              disabled={loading}
               onPress={handleSubmit(handleLogin)}
-              style={({ pressed }) => [
-                styles.signInButton,
-                loading && styles.signInButtonDisabled,
-                pressed && !loading && styles.pressed,
-              ]}
+              disabled={loading}
+              style={styles.continueWrap}
             >
-              {loading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={styles.signInText}>Sign in</Text>
-              )}
+              <LinearGradient
+                colors={["#2A9051", "#1C733C"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[
+                  styles.continueButton,
+                  loading && styles.continueButtonDisabled,
+                ]}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.continueText}>Sign in</Text>
+                )}
+              </LinearGradient>
             </Pressable>
 
             <View style={styles.dividerRow}>
@@ -453,27 +460,28 @@ const styles = StyleSheet.create({
     fontFamily: "PlusJakarta-Medium",
   },
 
-  signInButton: {
-    height: 46,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 23,
-    backgroundColor: GREEN,
+  /* -------------------- Sign in button (matches signup) -------------------- */
+  continueWrap: {
+    marginTop: 4,
   },
 
-  signInButtonDisabled: {
+  continueButton: {
+    height: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  continueButtonDisabled: {
     opacity: 0.6,
   },
 
-  signInText: {
+  continueText: {
     color: "#F5F5F5",
     fontSize: 14,
     fontFamily: "PlusJakarta-SemiBold",
   },
-
-  pressed: {
-    opacity: 0.82,
-  },
+  /* ------------------------------------------------------------------------- */
 
   dividerRow: {
     flexDirection: "row",
